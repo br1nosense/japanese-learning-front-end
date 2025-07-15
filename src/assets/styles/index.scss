@@ -1,0 +1,108 @@
+@import './transition/fade.scss';
+
+// 樱花主题CSS变量 - 使用指定的樱花色 #c8b2ae
+:root {
+  // 主色调 - 指定的樱花色系
+  --primary-color: #c8b2ae;
+  --primary-color-hover: #b8a29e;
+  --primary-color-pressed: #a8928e;
+  --primary-color-suppl: #d8c2be;
+
+  // 樱花渐变
+  --sakura-gradient: linear-gradient(135deg, #c8b2ae 0%, #d4bfba 50%, #e0ccc6 100%);
+  --sakura-light-gradient: linear-gradient(135deg, #f5f1f0 0%, #f8f4f3 50%, #faf7f6 100%);
+  --sakura-dark-gradient: linear-gradient(135deg, #9d8b87 0%, #8a7873 50%, #77655f 100%);
+
+  // 背景色 - 深色模式
+  --body-color: #1a1715;
+  --card-color: #2a2521;
+  --border-color: #3a332d;
+  --hover-color: rgba(200, 178, 174, 0.1);
+
+  // 文字色
+  --text-color: #f5f1f0;
+  --text-color-secondary: #c8b2ae;
+  --text-color-disabled: #8a7873;
+
+  // 阴影 - 使用新的樱花色
+  --shadow-1: 0 1px 3px rgba(200, 178, 174, 0.12), 0 1px 2px rgba(200, 178, 174, 0.24);
+  --shadow-2: 0 3px 6px rgba(200, 178, 174, 0.16), 0 3px 6px rgba(200, 178, 174, 0.23);
+  --shadow-3: 0 10px 20px rgba(200, 178, 174, 0.19), 0 6px 6px rgba(200, 178, 174, 0.23);
+}
+
+// 浅色模式覆盖
+.light {
+  --body-color: #faf8f7;
+  --card-color: #ffffff;
+  --border-color: #f0ebe9;
+  --hover-color: rgba(200, 178, 174, 0.05);
+
+  --text-color: #2d2520;
+  --text-color-secondary: #77655f;
+  --text-color-disabled: #a8928e;
+}
+
+// 全局样式优化
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--body-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+// 响应式设计优化
+@media (max-width: 768px) {
+  .n-card {
+    margin: 0 8px;
+  }
+
+  .n-grid-item {
+    padding: 0 4px;
+  }
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+// 文本选择样式
+::selection {
+  background-color: rgba(24, 160, 88, 0.2);
+  color: inherit;
+}
+
+// 链接样式
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--primary-color);
+}
+
+// 图片响应式
+img {
+  max-width: 100%;
+  height: auto;
+}
