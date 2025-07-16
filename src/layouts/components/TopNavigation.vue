@@ -17,6 +17,10 @@ const menus = generatorMenu(routeStore.routes) as unknown as MenuOption[]
 
 // 点击菜单
 function clickMenuItem(key: string) {
+  console.log('key',key)
+  console.log('menus',menus)
+  console.log('route',route)
+  console.log('router',router)
   if (/http(s)?:/.test(key)) {
     window.open(key)
   } else {
@@ -100,7 +104,7 @@ function goToProfile() {
             'bg-white/20 text-white': isActiveMenu(menu),
             'text-white/80 hover:text-white hover:bg-white/10': !isActiveMenu(menu)
           }"
-          @click="clickMenuItem(menu.key as string)"
+          @click="clickMenuItem(menu.name as string)"
         >
           <div class="flex items-center gap-2">
             <component :is="menu.icon" v-if="menu.icon" class="text-18px" />
@@ -234,7 +238,7 @@ function goToProfile() {
               'bg-white/20 text-white': isActiveMenu(menu),
               'text-white/80 hover:text-white hover:bg-white/10': !isActiveMenu(menu)
             }"
-            @click="clickMenuItem(menu.key as string)"
+            @click="clickMenuItem(menu.name as string)"
           >
             <div class="flex items-center gap-3">
               <component :is="menu.icon" v-if="menu.icon" class="text-20px" />

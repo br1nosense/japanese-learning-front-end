@@ -1,13 +1,35 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 const router = useRouter()
 
+// 响应式状态管理
 const selectedLevel = ref('all')
 const selectedCategory = ref('all')
+const courses = ref([])
+const loading = ref(false)
+const error = ref('')
 
-const courses = ref([
+// 课程数据类型定义
+interface Course {
+  id: number
+  title: string
+  description: string
+  level: 'beginner' | 'intermediate' | 'advanced'
+  category: 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'business' | 'exam'
+  lessons: number
+  duration: string
+  students: number
+  rating: number
+  image: string
+  tags: string[]
+  price: 'free' | 'premium'
+}
+
+// 模拟课程数据
+const mockCourseData: Course[] = [
   {
     id: 1,
     title: '零基础日语入门',
@@ -120,7 +142,48 @@ const courses = ref([
     tags: ['听力', '进阶', '理解'],
     price: 'premium'
   }
-])
+]
+
+// 模拟API请求函数
+async function fetchCourses(): Promise<Course[]> {
+  return new Promise((resolve, reject) => {
+    // 模拟网络延迟
+    setTimeout(() => {
+      // 模拟10%的请求失败率
+      if (Math.random() < 0.1) {
+        reject(new Error('网络请求失败，请稍后重试'))
+      } else {
+        // 模拟数据变化（随机调整学生数量）
+        const coursesWithRandomData = mockCourseData.map(course => ({
+          ...course,
+          students: course.students + Math.floor(Math.random() * 100) - 50
+        }))
+        resolve(coursesWithRandomData)
+      }
+    }, 800) // 800ms延迟模拟网络请求
+  })
+}
+
+// 获取课程数据
+async function loadCourses() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const courseData = await fetchCourses()
+    courses.value = courseData
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '获取课程数据失败'
+    console.error('获取课程数据失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 重新加载课程数据
+async function reloadCourses() {
+  await loadCourses()
+}
 
 const levelOptions = [
   { label: '全部级别', value: 'all' },
@@ -215,6 +278,11 @@ function startCourse(courseId: number) {
       })
   }
 }
+
+// 组件挂载时加载课程数据
+onMounted(() => {
+  loadCourses()
+})
 </script>
 
 <template>
@@ -243,6 +311,7 @@ function startCourse(courseId: number) {
             :options="levelOptions"
             class="w-120px"
             size="small"
+            :disabled="loading"
           />
         </div>
         <div class="filter-item">
@@ -252,9 +321,21 @@ function startCourse(courseId: number) {
             :options="categoryOptions"
             class="w-120px"
             size="small"
+            :disabled="loading"
           />
         </div>
-        <div class="ml-auto">
+        <div class="ml-auto flex items-center gap-3">
+          <n-button
+            size="small"
+            @click="reloadCourses"
+            :loading="loading"
+            secondary
+          >
+            <template #icon>
+              <Icon icon="tabler:refresh" />
+            </template>
+            刷新
+          </n-button>
           <n-text depth="3">
             共找到 {{ filteredCourses.length }} 门课程
           </n-text>
@@ -262,77 +343,114 @@ function startCourse(courseId: number) {
       </div>
     </n-card>
 
+    <!-- Error State -->
+    <n-card v-if="error && !loading" class="error-section mb-6 rounded-16px">
+      <n-result status="error" title="加载失败" :description="error">
+        <template #footer>
+          <n-button type="primary" @click="reloadCourses">
+            <template #icon>
+              <Icon icon="tabler:refresh" />
+            </template>
+            重新加载
+          </n-button>
+        </template>
+      </n-result>
+    </n-card>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-section mb-6">
+      <n-card class="rounded-16px" content-style="padding: 60px;">
+        <div class="text-center">
+          <n-spin size="large">
+            <template #description>
+              <n-text depth="3">正在加载课程数据...</n-text>
+            </template>
+          </n-spin>
+        </div>
+      </n-card>
+    </div>
+
     <!-- Course Grid -->
-    <n-grid :cols="24" :x-gap="24" :y-gap="24" responsive="screen" item-responsive>
-      <n-grid-item v-for="course in filteredCourses" :key="course.id" span="24 l:8 m:12 s:24">
-        <n-card hoverable class="course-card h-full" content-style="padding: 0;">
-          <div class="course-image">
-            <img :src="course.image" :alt="course.title" class="w-full h-160px object-cover" />
-            <div class="course-overlay">
-              <n-tag :type="getLevelColor(course.level)" size="small">
-                {{ getLevelText(course.level) }}
-              </n-tag>
-              <n-tag v-if="course.price === 'free'" type="success" size="small" class="ml-2">
-                免费
-              </n-tag>
-            </div>
-          </div>
-
-          <div class="course-content p-20px">
-            <n-h3 class="mb-2 line-clamp-1">{{ course.title }}</n-h3>
-            <n-text depth="3" class="mb-3 block line-clamp-2">{{ course.description }}</n-text>
-
-            <div class="course-tags mb-3">
-              <n-tag
-                v-for="tag in course.tags"
-                :key="tag"
-                size="small"
-                class="mr-1 mb-1"
-                type="info"
-                :bordered="false"
-              >
-                {{ tag }}
-              </n-tag>
-            </div>
-
-            <div class="course-stats mb-4">
-              <div class="flex items-center gap-4 text-sm text-gray-600">
-                <div class="flex items-center gap-1">
-                  <Icon icon="tabler:book" />
-                  <span>{{ course.lessons }}课时</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <Icon icon="tabler:clock" />
-                  <span>{{ course.duration }}</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <Icon icon="tabler:users" />
-                  <span>{{ course.students }}</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-1 mt-2">
-                <Icon icon="tabler:star-filled" class="text-yellow-500" />
-                <span class="text-sm">{{ course.rating }}</span>
+    <div v-if="!loading && !error">
+      <n-grid :cols="24" :x-gap="24" :y-gap="24" responsive="screen" item-responsive>
+        <n-grid-item v-for="course in filteredCourses" :key="course.id" span="24 l:8 m:12 s:24">
+          <n-card hoverable class="course-card h-full" content-style="padding: 0;">
+            <div class="course-image">
+              <img :src="course.image" :alt="course.title" class="w-full h-160px object-cover" />
+              <div class="course-overlay">
+                <n-tag :type="getLevelColor(course.level)" size="small">
+                  {{ getLevelText(course.level) }}
+                </n-tag>
+                <n-tag v-if="course.price === 'free'" type="success" size="small" class="ml-2">
+                  免费
+                </n-tag>
               </div>
             </div>
 
-            <n-button type="primary" block @click="startCourse(course.id)">
-              <template #icon>
-                <Icon icon="tabler:play" />
-              </template>
-              开始学习
-            </n-button>
-          </div>
+            <div class="course-content p-20px">
+              <n-h3 class="mb-2 line-clamp-1">{{ course.title }}</n-h3>
+              <n-text depth="3" class="mb-3 block line-clamp-2">{{ course.description }}</n-text>
+
+              <div class="course-tags mb-3">
+                <n-tag
+                  v-for="tag in course.tags"
+                  :key="tag"
+                  size="small"
+                  class="mr-1 mb-1"
+                  type="info"
+                  :bordered="false"
+                >
+                  {{ tag }}
+                </n-tag>
+              </div>
+
+              <div class="course-stats mb-4">
+                <div class="flex items-center gap-4 text-sm text-gray-600">
+                  <div class="flex items-center gap-1">
+                    <Icon icon="tabler:book" />
+                    <span>{{ course.lessons }}课时</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <Icon icon="tabler:clock" />
+                    <span>{{ course.duration }}</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <Icon icon="tabler:users" />
+                    <span>{{ course.students }}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 mt-2">
+                  <Icon icon="tabler:star-filled" class="text-yellow-500" />
+                  <span class="text-sm">{{ course.rating }}</span>
+                </div>
+              </div>
+
+              <n-button type="primary" block @click="startCourse(course.id)">
+                <template #icon>
+                  <Icon icon="tabler:play" />
+                </template>
+                开始学习
+              </n-button>
+            </div>
+          </n-card>
+        </n-grid-item>
+      </n-grid>
+
+      <!-- Empty State -->
+      <div v-if="filteredCourses.length === 0 && !loading && !error" class="empty-state text-center py-20">
+        <n-card class="rounded-16px" content-style="padding: 60px;">
+          <Icon icon="tabler:book-off" class="text-80px text-gray-400 mb-4" />
+          <n-text depth="3" class="text-18px mb-4 block">
+            没有找到符合条件的课程
+          </n-text>
+          <n-button @click="reloadCourses" secondary>
+            <template #icon>
+              <Icon icon="tabler:refresh" />
+            </template>
+            重新加载
+          </n-button>
         </n-card>
-      </n-grid-item>
-    </n-grid>
-
-    <!-- Empty State -->
-    <div v-if="filteredCourses.length === 0" class="empty-state text-center py-20">
-      <Icon icon="tabler:book-off" class="text-80px text-gray-400 mb-4" />
-      <n-text depth="3" class="text-18px">
-        没有找到符合条件的课程
-      </n-text>
+      </div>
     </div>
   </div>
 </template>

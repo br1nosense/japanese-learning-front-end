@@ -10,9 +10,7 @@ const settingStore = useSettingStore()
   <naive-provider>
     <div class="top-nav-layout min-h-screen flex flex-col">
       <!-- 顶部导航 -->
-      <header class="top-nav-header relative z-50">
-        <TopNavigation />
-      </header>
+      <TopNavigation />
 
       <!-- 主要内容区域 -->
       <main class="main-content flex-1 flex flex-col">
@@ -34,8 +32,8 @@ const settingStore = useSettingStore()
 }
 
 .main-content {
-  margin-top: 0;
-  min-height: calc(100vh - 80px); /* 减去导航栏高度 */
+  margin-top: 80px; /* 为固定导航栏预留空间 */
+  min-height: calc(100vh - 80px);
 }
 
 .content-wrapper {
