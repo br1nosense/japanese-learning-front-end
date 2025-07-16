@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue'
 import GrammarCard from '@/components/learning/GrammarCard.vue'
 import { LearningDataManager } from '@/utils/learning'
 import type { GrammarQuestion, GrammarProgress } from '@/types/learning'
+import ImmersiveLearningLayout from '@/layouts/ImmersiveLearningLayout.vue'
 
 const dataManager = LearningDataManager.getInstance()
 
