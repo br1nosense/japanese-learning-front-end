@@ -10,6 +10,25 @@ const { t } = useI18n()
 
 const dataManager = LearningDataManager.getInstance()
 const router = useRouter()
+const route = useRoute()
+
+// 获取课程信息
+const courseInfo = computed(() => {
+  const query = route.query
+  return {
+    courseId: query.courseId as string || '',
+    level: query.level as string || 'beginner',
+    title: query.title as string || '单词学习',
+    description: query.description as string || '',
+    category: query.category as string || 'vocabulary',
+    lessons: parseInt(query.lessons as string || '0'),
+    duration: query.duration as string || '',
+    tags: query.tags ? (query.tags as string).split(',') : [],
+    price: query.price as string || 'free',
+    focus: query.focus as string || 'general',
+    type: query.type as string || ''
+  }
+})
 
 // 沉浸式学习模式状态
 const isImmersiveMode = ref(true) // 默认开启沉浸式模式
@@ -20,63 +39,186 @@ const learningSettings = ref({
   showHints: true
 })
 
-// 模拟单词数据
-const words = ref<Word[]>([
-  {
-    id: '1',
-    japanese: 'こんにちは',
-    romaji: 'konnichiwa',
-    meaning: '你好，下午好',
-    examples: [
+// 根据课程信息生成单词数据
+function generateWordsForCourse(courseInfo: any): Word[] {
+  const baseWords: Word[] = [
+    {
+      id: '1',
+      japanese: 'こんにちは',
+      romaji: 'konnichiwa',
+      meaning: '你好，下午好',
+      examples: [
+        {
+          japanese: 'こんにちは、田中さん。',
+          romaji: 'Konnichiwa, Tanaka-san.',
+          meaning: '你好，田中先生。'
+        },
+        {
+          japanese: 'こんにちは、元気ですか？',
+          romaji: 'Konnichiwa, genki desu ka?',
+          meaning: '你好，你好吗？'
+        }
+      ],
+      level: 'N5',
+      category: '问候语',
+      difficulty: 1
+    },
+    {
+      id: '2',
+      japanese: 'ありがとう',
+      romaji: 'arigatou',
+      meaning: '谢谢',
+      examples: [
+        {
+          japanese: 'ありがとうございます。',
+          romaji: 'Arigatou gozaimasu.',
+          meaning: '谢谢您。'
+        }
+      ],
+      level: 'N5',
+      category: '礼貌用语',
+      difficulty: 1
+    },
+    {
+      id: '3',
+      japanese: 'がっこう',
+      kanji: '学校',
+      romaji: 'gakkou',
+      meaning: '学校',
+      examples: [
+        {
+          japanese: '学校に行きます。',
+          romaji: 'Gakkou ni ikimasu.',
+          meaning: '去学校。'
+        }
+      ],
+      level: 'N5',
+      category: '名词',
+      difficulty: 2
+    }
+  ]
+
+  // 根据课程类型和级别筛选和扩展单词
+  const levelWords = {
+    beginner: [
       {
-        japanese: 'こんにちは、田中さん。',
-        romaji: 'Konnichiwa, Tanaka-san.',
-        meaning: '你好，田中先生。'
-      },
-      {
-        japanese: 'こんにちは、元気ですか？',
-        romaji: 'Konnichiwa, genki desu ka?',
-        meaning: '你好，你好吗？'
+        id: '4',
+        japanese: 'たべる',
+        kanji: '食べる',
+        romaji: 'taberu',
+        meaning: '吃',
+        examples: [
+          {
+            japanese: 'ご飯を食べます。',
+            romaji: 'Gohan wo tabemasu.',
+            meaning: '吃饭。'
+          }
+        ],
+        level: 'N5',
+        category: '动词',
+        difficulty: 1
       }
     ],
-    level: 'N5',
-    category: '问候语',
-    difficulty: 1
-  },
-  {
-    id: '2',
-    japanese: 'ありがとう',
-    romaji: 'arigatou',
-    meaning: '谢谢',
-    examples: [
+    intermediate: [
       {
-        japanese: 'ありがとうございます。',
-        romaji: 'Arigatou gozaimasu.',
-        meaning: '谢谢您。'
+        id: '5',
+        japanese: 'けいけん',
+        kanji: '経験',
+        romaji: 'keiken',
+        meaning: '经验',
+        examples: [
+          {
+            japanese: '経験が大切です。',
+            romaji: 'Keiken ga taisetsu desu.',
+            meaning: '经验很重要。'
+          }
+        ],
+        level: 'N3',
+        category: '名词',
+        difficulty: 3
       }
     ],
-    level: 'N5',
-    category: '礼貌用语',
-    difficulty: 1
-  },
-  {
-    id: '3',
-    japanese: 'がっこう',
-    kanji: '学校',
-    romaji: 'gakkou',
-    meaning: '学校',
-    examples: [
+    advanced: [
       {
-        japanese: '学校に行きます。',
-        romaji: 'Gakkou ni ikimasu.',
-        meaning: '去学校。'
+        id: '6',
+        japanese: 'こうりょ',
+        kanji: '考慮',
+        romaji: 'kouryo',
+        meaning: '考虑',
+        examples: [
+          {
+            japanese: '様々な要因を考慮する。',
+            romaji: 'Samazama na youin wo kouryo suru.',
+            meaning: '考虑各种因素。'
+          }
+        ],
+        level: 'N1',
+        category: '名词',
+        difficulty: 5
       }
-    ],
-    level: 'N5',
-    category: '名词',
-    difficulty: 2
+    ]
   }
-])
+
+  // 根据课程焦点添加特定类型的单词
+  const focusWords = {
+    business: [
+      {
+        id: '7',
+        japanese: 'かいぎ',
+        kanji: '会議',
+        romaji: 'kaigi',
+        meaning: '会议',
+        examples: [
+          {
+            japanese: '会議に参加します。',
+            romaji: 'Kaigi ni sanka shimasu.',
+            meaning: '参加会议。'
+          }
+        ],
+        level: 'N4',
+        category: '商务',
+        difficulty: 3
+      }
+    ],
+    exam: [
+      {
+        id: '8',
+        japanese: 'しけん',
+        kanji: '試験',
+        romaji: 'shiken',
+        meaning: '考试',
+        examples: [
+          {
+            japanese: '試験に合格しました。',
+            romaji: 'Shiken ni goukaku shimashita.',
+            meaning: '考试合格了。'
+          }
+        ],
+        level: 'N4',
+        category: '考试',
+        difficulty: 3
+      }
+    ]
+  }
+
+  // 合并单词
+  let finalWords = [...baseWords]
+
+  // 根据级别添加单词
+  if (levelWords[courseInfo.level as keyof typeof levelWords]) {
+    finalWords = [...finalWords, ...levelWords[courseInfo.level as keyof typeof levelWords]]
+  }
+
+  // 根据焦点添加单词
+  if (focusWords[courseInfo.focus as keyof typeof focusWords]) {
+    finalWords = [...finalWords, ...focusWords[courseInfo.focus as keyof typeof focusWords]]
+  }
+
+  return finalWords
+}
+
+// 动态生成单词数据
+const words = ref<Word[]>(generateWordsForCourse(courseInfo.value))
 
 // 学习进度数据
 const progressMap = ref<Map<string, WordProgress>>(new Map())
@@ -399,6 +541,44 @@ function restoreLearningState() {
   }
 }
 
+// 获取级别颜色
+function getLevelColor(level: string) {
+  switch (level) {
+    case 'beginner':
+      return 'success'
+    case 'intermediate':
+      return 'warning'
+    case 'advanced':
+      return 'error'
+    default:
+      return 'info'
+  }
+}
+
+// 获取级别文本
+function getLevelText(level: string) {
+  switch (level) {
+    case 'beginner':
+      return '初级'
+    case 'intermediate':
+      return '中级'
+    case 'advanced':
+      return '高级'
+    default:
+      return '未知'
+  }
+}
+
+// 监听路由变化，重新生成单词
+watch(() => route.query, (newQuery) => {
+  if (newQuery.courseId) {
+    words.value = generateWordsForCourse(courseInfo.value)
+    currentIndex.value = 0
+    showAnswer.value = false
+    updateStats()
+  }
+}, { deep: true })
+
 // 组件挂载时加载进度
 onMounted(async () => {
   await loadProgress()
@@ -412,7 +592,7 @@ onMounted(async () => {
 
 <template>
   <ImmersiveLearningLayout
-    :title="t('learning.wordLearning.title')"
+    :title="courseInfo.title || t('learning.wordLearning.title')"
     @settings="handleSettings"
     @reset="handleReset"
     @fullscreen="handleFullscreen"
@@ -420,6 +600,43 @@ onMounted(async () => {
   >
     <!-- 主要学习内容 -->
     <div class="immersive-word-learning">
+      <!-- 课程信息卡片 -->
+      <n-card v-if="courseInfo.courseId" class="course-info-card mb-6 rounded-16px" content-style="padding: 20px;">
+        <div class="course-info-header mb-3">
+          <n-text strong class="text-18px">{{ courseInfo.title }}</n-text>
+          <n-tag :type="getLevelColor(courseInfo.level)" size="small" class="ml-2">
+            {{ getLevelText(courseInfo.level) }}
+          </n-tag>
+        </div>
+        <n-text depth="3" class="mb-3 block">{{ courseInfo.description }}</n-text>
+        <div class="course-meta flex items-center gap-4 text-sm">
+          <div class="flex items-center gap-1">
+            <Icon icon="tabler:book" />
+            <span>{{ courseInfo.lessons }}课时</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <Icon icon="tabler:clock" />
+            <span>{{ courseInfo.duration }}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <Icon icon="tabler:tag" />
+            <span>{{ courseInfo.category }}</span>
+          </div>
+        </div>
+        <div v-if="courseInfo.tags.length > 0" class="course-tags mt-3">
+          <n-tag
+            v-for="tag in courseInfo.tags"
+            :key="tag"
+            size="small"
+            class="mr-1"
+            type="info"
+            :bordered="false"
+          >
+            {{ tag }}
+          </n-tag>
+        </div>
+      </n-card>
+
       <!-- 学习统计卡片 -->
       <n-card class="stats-card mb-6 rounded-16px" content-style="padding: 20px;">
         <div class="stats-grid">

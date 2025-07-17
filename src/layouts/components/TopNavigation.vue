@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { h } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { MenuOption } from 'naive-ui'
 import { generatorMenu } from '@/utils/router'
@@ -18,16 +19,35 @@ const menus = generatorMenu(routeStore.routes) as unknown as MenuOption[]
 
 // 点击菜单
 function clickMenuItem(key: string) {
-  console.log('key',key)
-  console.log('menus',menus)
-  console.log('route',route)
-  console.log('router',router)
+  console.log('点击菜单项:', key)
+
+  // 处理外部链接
   if (/http(s)?:/.test(key)) {
     window.open(key)
-  } else {
-    router.push({ name: key })
+    return
   }
-  mobileMenuVisible.value = false // 移动端点击后关闭菜单
+
+  try {
+    // 尝试使用 name 导航
+    if (key) {
+      router.push({ name: key })
+      console.log('通过name导航:', key)
+    } else {
+      console.error('无效的菜单key:', key)
+    }
+  } catch (error) {
+    console.error('导航错误:', error)
+    // 如果name导航失败，尝试使用path导航
+    try {
+      router.push({ path: key })
+      console.log('通过path导航:', key)
+    } catch (innerError) {
+      console.error('路径导航也失败:', innerError)
+    }
+  }
+
+  // 关闭移动端菜单
+  mobileMenuVisible.value = false
 }
 
 // 切换移动端菜单
@@ -108,7 +128,7 @@ function goToProfile() {
             'bg-white/20 text-white': isActiveMenu(menu),
             'text-white/80 hover:text-white hover:bg-white/10': !isActiveMenu(menu)
           }"
-          @click="clickMenuItem(menu.name as string)"
+          @click="clickMenuItem(menu.key as string)"
         >
           <div class="flex items-center gap-2">
             <component :is="menu.icon" v-if="menu.icon" class="text-18px" />
@@ -180,7 +200,8 @@ function goToProfile() {
                 icon: () => h(Icon, { icon: 'tabler:logout' })
               }
             ]"
-            @select="(key) => {
+            @select="(key: string) => {
+              console.log('Dropdown selected:', key)
               if (key === 'logout') handleLogout()
               else if (key === 'profile') goToProfile()
               else if (key === 'progress') router.push('/progress')
@@ -247,7 +268,7 @@ function goToProfile() {
               'bg-white/20 text-white': isActiveMenu(menu),
               'text-white/80 hover:text-white hover:bg-white/10': !isActiveMenu(menu)
             }"
-            @click="clickMenuItem(menu.name as string)"
+            @click="clickMenuItem(menu.key as string)"
           >
             <div class="flex items-center gap-3">
               <component :is="menu.icon" v-if="menu.icon" class="text-20px" />

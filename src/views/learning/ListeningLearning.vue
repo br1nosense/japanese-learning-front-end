@@ -1,5 +1,27 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+
+// 获取课程信息
+const courseInfo = computed(() => {
+  const query = route.query
+  return {
+    courseId: query.courseId as string || '',
+    level: query.level as string || 'beginner',
+    title: query.title as string || '听力学习',
+    description: query.description as string || '',
+    category: query.category as string || 'listening',
+    lessons: parseInt(query.lessons as string || '0'),
+    duration: query.duration as string || '',
+    tags: query.tags ? (query.tags as string).split(',') : [],
+    price: query.price as string || 'free',
+    focus: query.focus as string || 'general',
+    type: query.type as string || ''
+  }
+})
 
 // 模拟听力练习数据
 const listeningExercises = ref([

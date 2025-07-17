@@ -233,48 +233,92 @@ function startCourse(courseId: number) {
   const course = courses.value.find(c => c.id === courseId)
   if (!course) return
 
+  // 构建完整的课程信息参数
+  const courseParams = {
+    courseId: courseId.toString(),
+    level: course.level,
+    title: course.title,
+    description: course.description,
+    category: course.category,
+    lessons: course.lessons.toString(),
+    duration: course.duration,
+    tags: course.tags.join(','), // 将标签数组转换为逗号分隔的字符串
+    price: course.price
+  }
+
+  // 根据课程类别跳转到不同的学习页面
   switch (course.category) {
     case 'vocabulary':
       // 词汇类课程跳转到单词学习
       router.push({
         path: '/learning/words',
-        query: { courseId: courseId.toString(), level: course.level }
+        query: {
+          ...courseParams,
+          focus: 'vocabulary' // 指定学习重点
+        }
       })
       break
     case 'grammar':
       // 语法类课程跳转到语法学习
       router.push({
         path: '/learning/grammar',
-        query: { courseId: courseId.toString(), level: course.level }
+        query: {
+          ...courseParams,
+          focus: 'grammar'
+        }
       })
       break
     case 'listening':
       // 听力类课程跳转到听力学习页面
       router.push({
         path: '/learning/listening',
-        query: { courseId: courseId.toString(), level: course.level }
+        query: {
+          ...courseParams,
+          focus: 'listening'
+        }
       })
       break
     case 'reading':
       // 阅读类课程跳转到阅读学习页面（暂时跳转到单词学习）
       router.push({
         path: '/learning/words',
-        query: { courseId: courseId.toString(), level: course.level, type: 'reading' }
+        query: {
+          ...courseParams,
+          focus: 'reading',
+          type: 'reading'
+        }
       })
       break
     case 'business':
-    case 'exam':
-      // 商务和考试类课程跳转到语法学习
+      // 商务日语课程跳转到语法学习，但专注于商务内容
       router.push({
         path: '/learning/grammar',
-        query: { courseId: courseId.toString(), level: course.level, type: course.category }
+        query: {
+          ...courseParams,
+          focus: 'business',
+          type: 'business'
+        }
+      })
+      break
+    case 'exam':
+      // 考试类课程跳转到语法学习，但专注于考试内容
+      router.push({
+        path: '/learning/grammar',
+        query: {
+          ...courseParams,
+          focus: 'exam',
+          type: 'exam'
+        }
       })
       break
     default:
       // 默认跳转到单词学习
       router.push({
         path: '/learning/words',
-        query: { courseId: courseId.toString(), level: course.level }
+        query: {
+          ...courseParams,
+          focus: 'general'
+        }
       })
   }
 }

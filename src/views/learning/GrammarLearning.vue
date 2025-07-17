@@ -8,8 +8,27 @@ import ImmersiveLearningLayout from '@/layouts/ImmersiveLearningLayout.vue'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 
 const dataManager = LearningDataManager.getInstance()
+
+// 获取课程信息
+const courseInfo = computed(() => {
+  const query = route.query
+  return {
+    courseId: query.courseId as string || '',
+    level: query.level as string || 'beginner',
+    title: query.title as string || '语法学习',
+    description: query.description as string || '',
+    category: query.category as string || 'grammar',
+    lessons: parseInt(query.lessons as string || '0'),
+    duration: query.duration as string || '',
+    tags: query.tags ? (query.tags as string).split(',') : [],
+    price: query.price as string || 'free',
+    focus: query.focus as string || 'general',
+    type: query.type as string || ''
+  }
+})
 
 // 模拟语法题目数据
 const questions = ref<GrammarQuestion[]>([
