@@ -1,40 +1,50 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
+import { useI18n } from 'vue-i18n'
 import SakuraAnimation from '@/components/common/SakuraAnimation.vue'
+
 const router = useRouter()
-const features = ref([
+const { t } = useI18n()
+// 功能特性数据（使用计算属性支持国际化，日式主题图标）
+const features = computed(() => [
   {
-    icon: 'tabler:cards',
-    title: '单词学习',
-    description: '通过卡片翻转的方式学习日语单词，支持收藏和复习功能',
-    route: '/learning/words'
+    icon: 'noto:cherry-blossom', // 樱花 - 单词学习
+    title: t('homepage.features.wordLearning.title'),
+    description: t('homepage.features.wordLearning.description'),
+    route: '/learning/words',
+    color: 'var(--primary-color)'
   },
   {
-    icon: 'tabler:grammar',
-    title: '语法练习',
-    description: '通过选择题练习日语语法，掌握助词和语法结构',
-    route: '/learning/grammar'
+    icon: 'noto:japanese-symbol-for-beginner', // 日语初学者标志 - 语法练习
+    title: t('homepage.features.grammarPractice.title'),
+    description: t('homepage.features.grammarPractice.description'),
+    route: '/learning/grammar',
+    color: 'var(--secondary-color)'
   },
   {
-    icon: 'tabler:ear',
-    title: '听力训练',
-    description: '通过听力模式提高日语听力理解能力，从基础发音到日常对话'
+    icon: 'noto:ear', // 耳朵 - 听力训练
+    title: t('homepage.features.listeningTraining.title'),
+    description: t('homepage.features.listeningTraining.description'),
+    color: 'var(--accent-color)'
   },
   {
-    icon: 'tabler:brain',
-    title: '记忆强化',
-    description: '科学的重复学习机制，帮助形成长期记忆'
+    icon: 'noto:mount-fuji', // 富士山 - 记忆强化
+    title: t('homepage.features.memoryEnhancement.title'),
+    description: t('homepage.features.memoryEnhancement.description'),
+    color: 'var(--soft-blue)'
   },
   {
-    icon: 'tabler:device-gamepad',
-    title: '游戏化学习',
-    description: '趣味学习模式，让日语学习不再枯燥'
+    icon: 'noto:video-game', // 游戏 - 游戏化学习
+    title: t('homepage.features.gamifiedLearning.title'),
+    description: t('homepage.features.gamifiedLearning.description'),
+    color: 'var(--warm-gold)'
   },
   {
-    icon: 'tabler:chart-line',
-    title: '进度跟踪',
-    description: '详细的学习统计和进度分析，掌握学习节奏',
-    route: '/progress'
+    icon: 'noto:chart-increasing', // 上升图表 - 进度跟踪
+    title: t('homepage.features.progressTracking.title'),
+    description: t('homepage.features.progressTracking.description'),
+    route: '/progress',
+    color: 'var(--matcha-green)'
   }
 ])
 
@@ -71,35 +81,39 @@ const petalCount = computed(() => {
     <n-card class="hero-section mb-6 rounded-16px" content-style="padding: 60px 40px;">
       <div class="flex flex-col items-center text-center">
         <div class="flex items-center mb-8">
-          <Icon icon="noto:japanese-symbol-for-beginner" class="text-80px mr-4" />
+          <div class="hero-icon-container">
+            <Icon icon="noto:cherry-blossom" class="hero-icon primary" />
+            <Icon icon="noto:japanese-symbol-for-beginner" class="hero-icon secondary" />
+            <Icon icon="twemoji:flag-japan" class="hero-icon accent" />
+          </div>
           <div>
-            <n-gradient-text type="primary" :size="48" class="font-bold">
-              日语学习助手
+            <n-gradient-text type="primary" :size="48" class="font-bold hero-title">
+              {{ t('homepage.title') }}
             </n-gradient-text>
-            <div class="text-18px text-gray-600 mt-2">
-              让日语学习变得简单有趣
+            <div class="text-18px hero-subtitle mt-2">
+              {{ t('homepage.subtitle') }}
             </div>
           </div>
         </div>
 
         <n-h2 class="mb-6 max-w-800px">
           <n-gradient-text type="success">
-            通过科学的学习方法和游戏化体验，帮助您轻松掌握日语
+            {{ t('homepage.description') }}
           </n-gradient-text>
         </n-h2>
 
         <div class="flex gap-4 mb-8">
-          <n-button size="large" type="primary" @click="navigateToGetStarted">
+          <n-button size="large" type="primary" class="hero-button primary-btn" @click="navigateToGetStarted">
             <template #icon>
-              <Icon icon="tabler:rocket" />
+              <Icon icon="noto:cherry-blossom" />
             </template>
-            开始学习
+            {{ t('homepage.startLearning') }}
           </n-button>
-          <n-button size="large" @click="navigateToCourses">
+          <n-button size="large" class="hero-button secondary-btn" @click="navigateToCourses">
             <template #icon>
-              <Icon icon="tabler:book-open" />
+              <Icon icon="noto:books" />
             </template>
-            浏览课程
+            {{ t('homepage.browseCourses') }}
           </n-button>
         </div>
 
@@ -113,7 +127,7 @@ const petalCount = computed(() => {
     <n-card class="features-section rounded-16px" content-style="padding: 40px;">
       <n-h2 class="text-center mb-8">
         <n-gradient-text type="info">
-          为什么选择我们的日语学习平台？
+          {{ t('homepage.featuresTitle') }}
         </n-gradient-text>
       </n-h2>
 
@@ -133,7 +147,7 @@ const petalCount = computed(() => {
           >
             <div class="feature-content">
               <!-- 图标区域 -->
-              <div class="feature-icon-wrapper">
+              <div class="feature-icon-wrapper" :style="{ '--feature-color': feature.color }">
                 <Icon :icon="feature.icon" class="feature-icon" />
               </div>
 
@@ -147,7 +161,7 @@ const petalCount = computed(() => {
 
               <!-- 箭头指示器（仅对可点击的卡片显示） -->
               <div v-if="feature.route" class="feature-arrow">
-                <Icon icon="tabler:arrow-right" class="arrow-icon" />
+                <Icon icon="noto:right-arrow" class="arrow-icon" />
               </div>
             </div>
           </n-card>
@@ -160,17 +174,17 @@ const petalCount = computed(() => {
       <div class="text-center">
         <n-h2 class="mb-4">
           <n-gradient-text type="warning">
-            准备开始您的日语学习之旅了吗？
+            {{ t('homepage.ctaTitle') }}
           </n-gradient-text>
         </n-h2>
         <n-text class="text-16px mb-6 block">
-          加入我们，体验最有效的日语学习方法
+          {{ t('homepage.ctaDescription') }}
         </n-text>
-        <n-button size="large" type="primary" @click="navigateToGetStarted">
+        <n-button size="large" type="primary" class="cta-button" @click="navigateToGetStarted">
           <template #icon>
-            <Icon icon="tabler:arrow-right" />
+            <Icon icon="noto:cherry-blossom" />
           </template>
-          立即开始
+          {{ t('homepage.startNow') }}
         </n-button>
       </div>
     </n-card>
@@ -184,6 +198,89 @@ const petalCount = computed(() => {
   position: relative;
   z-index: 1;
 }
+
+/* 英雄区域图标样式 */
+.hero-icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 24px;
+  position: relative;
+}
+
+.hero-icon {
+  font-size: 48px;
+  margin: 4px 0;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 4px 8px rgba(255, 183, 197, 0.3));
+}
+
+.hero-icon.primary {
+  font-size: 56px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.hero-icon.secondary {
+  font-size: 40px;
+  animation: float 3s ease-in-out infinite 1s;
+}
+
+.hero-icon.accent {
+  font-size: 32px;
+  animation: float 3s ease-in-out infinite 2s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* 英雄区域文本样式 */
+.hero-title {
+  background: var(--sakura-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  color: var(--text-color-2);
+  font-weight: 500;
+}
+
+/* 英雄区域按钮样式 */
+.hero-button {
+  min-width: 160px;
+  height: 48px;
+  border-radius: 24px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-2);
+}
+
+.hero-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
+}
+
+.primary-btn {
+  background: var(--sakura-gradient);
+  border: none;
+  color: white;
+}
+
+.secondary-btn {
+  background: var(--card-color);
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.secondary-btn:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+
 
 .hero-section {
   background: var(--sakura-gradient);
@@ -298,8 +395,8 @@ const petalCount = computed(() => {
   margin-bottom: 20px;
   padding: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  background: var(--feature-color, var(--primary-color));
+  box-shadow: 0 4px 16px rgba(255, 183, 197, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -320,7 +417,7 @@ const petalCount = computed(() => {
 
 .feature-card:hover .feature-icon-wrapper {
   transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 32px rgba(255, 183, 197, 0.4);
 }
 
 .feature-card:hover .feature-icon-wrapper::before {
@@ -381,6 +478,26 @@ const petalCount = computed(() => {
 
 .cta-section :deep(.n-card__content) {
   background: transparent;
+}
+
+/* CTA按钮样式 */
+.cta-button {
+  min-width: 180px;
+  height: 52px;
+  border-radius: 26px;
+  font-weight: 600;
+  font-size: 16px;
+  background: var(--sakura-gradient);
+  border: none;
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-2);
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-3);
+  background: var(--sakura-dark-gradient);
 }
 
 /* 移动端响应式优化 */

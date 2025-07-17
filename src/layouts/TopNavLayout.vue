@@ -34,6 +34,7 @@ const settingStore = useSettingStore()
 .main-content {
   margin-top: 80px; /* 为固定导航栏预留空间 */
   min-height: calc(100vh - 80px);
+  background: var(--body-color);
 }
 
 .content-wrapper {
@@ -54,7 +55,8 @@ const settingStore = useSettingStore()
   }
 
   .main-content {
-    min-height: calc(100vh - 70px); /* 移动端导航栏高度调整 */
+    margin-top: 70px; /* 移动端导航栏高度调整 */
+    min-height: calc(100vh - 70px);
   }
 }
 </style>

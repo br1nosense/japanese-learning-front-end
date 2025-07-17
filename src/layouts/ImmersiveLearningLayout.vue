@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // 定义 props
 interface Props {
@@ -10,7 +13,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: '沉浸式学习',
+  title: '',
   showSettings: true,
   showReset: true,
   showFullscreen: true
@@ -61,13 +64,13 @@ function openSettings() {
 // 重置功能
 function handleReset() {
   window.$dialog.warning({
-    title: '确认重置',
-    content: '确定要重置当前学习进度吗？这将清除当前会话的所有学习记录。',
-    positiveText: '确认重置',
-    negativeText: '取消',
+    title: t('immersive.resetConfirm'),
+    content: t('immersive.resetMessage'),
+    positiveText: t('immersive.confirmReset'),
+    negativeText: t('common.cancel'),
     onPositiveClick: () => {
       emit('reset')
-      window.$message.success('学习进度已重置')
+      window.$message.success(t('immersive.progressReset'))
     }
   })
 }
@@ -75,10 +78,10 @@ function handleReset() {
 // 退出学习模式
 function exitLearning() {
   window.$dialog.info({
-    title: '退出学习',
-    content: '确定要退出当前学习模式吗？学习进度将会自动保存。',
-    positiveText: '确认退出',
-    negativeText: '继续学习',
+    title: t('immersive.exitConfirm'),
+    content: t('immersive.exitMessage'),
+    positiveText: t('immersive.confirmExit'),
+    negativeText: t('immersive.continueStudy'),
     onPositiveClick: () => {
       emit('exit')
     }
@@ -101,7 +104,7 @@ onUnmounted(() => {
     <div class="learning-header">
       <!-- 左侧标题 -->
       <div class="header-left">
-        <n-h3 class="learning-title">{{ title }}</n-h3>
+        <n-h3 class="learning-title">{{ title || t('immersive.settings') }}</n-h3>
       </div>
 
       <!-- 右侧功能按钮组 -->
@@ -116,10 +119,10 @@ onUnmounted(() => {
               class="action-button"
               @click="openSettings"
             >
-              <Icon icon="tabler:settings" class="action-icon" />
+              <Icon icon="noto:gear" class="action-icon" />
             </n-button>
           </template>
-          学习设置
+          {{ t('immersive.settings') }}
         </n-tooltip>
 
         <!-- 重置按钮 -->
@@ -132,10 +135,10 @@ onUnmounted(() => {
               class="action-button"
               @click="handleReset"
             >
-              <Icon icon="tabler:refresh" class="action-icon" />
+              <Icon icon="noto:clockwise-vertical-arrows" class="action-icon" />
             </n-button>
           </template>
-          重置进度
+          {{ t('immersive.reset') }}
         </n-tooltip>
 
         <!-- 全屏按钮 -->
@@ -148,13 +151,13 @@ onUnmounted(() => {
               class="action-button"
               @click="toggleFullscreen"
             >
-              <Icon 
-                :icon="isFullscreen ? 'tabler:minimize' : 'tabler:maximize'" 
-                class="action-icon" 
+              <Icon
+                :icon="isFullscreen ? 'noto:downwards-button' : 'noto:upwards-button'"
+                class="action-icon"
               />
             </n-button>
           </template>
-          {{ isFullscreen ? '退出全屏' : '进入全屏' }}
+          {{ isFullscreen ? t('immersive.exitFullscreen') : t('immersive.fullscreen') }}
         </n-tooltip>
 
         <!-- 退出按钮 -->
@@ -167,10 +170,10 @@ onUnmounted(() => {
               class="action-button exit-button"
               @click="exitLearning"
             >
-              <Icon icon="tabler:x" class="action-icon" />
+              <Icon icon="noto:cross-mark" class="action-icon" />
             </n-button>
           </template>
-          退出学习
+          {{ t('immersive.exit') }}
         </n-tooltip>
       </div>
     </div>
@@ -187,25 +190,30 @@ onUnmounted(() => {
       placement="right"
       :mask-closable="true"
     >
-      <n-drawer-content title="学习设置" closable>
+      <n-drawer-content :title="t('immersive.settings')" closable>
         <slot name="settings">
           <div class="default-settings">
             <n-space vertical size="large">
               <!-- 字体大小设置 -->
               <div class="setting-item">
-                <n-text strong>字体大小</n-text>
+                <n-text strong>{{ t('immersive.settingsPanel.fontSize') }}</n-text>
                 <n-slider
                   :default-value="16"
                   :min="12"
                   :max="24"
                   :step="2"
-                  :marks="{ 12: '小', 16: '中', 20: '大', 24: '特大' }"
+                  :marks="{
+                    12: t('immersive.settingsPanel.fontSizes.small'),
+                    16: t('immersive.settingsPanel.fontSizes.medium'),
+                    20: t('immersive.settingsPanel.fontSizes.large'),
+                    24: t('immersive.settingsPanel.fontSizes.extraLarge')
+                  }"
                 />
               </div>
 
               <!-- 音量设置 -->
               <div class="setting-item">
-                <n-text strong>音量</n-text>
+                <n-text strong>{{ t('immersive.settingsPanel.volume') }}</n-text>
                 <n-slider
                   :default-value="70"
                   :min="0"
@@ -217,7 +225,7 @@ onUnmounted(() => {
               <!-- 自动播放 -->
               <div class="setting-item">
                 <n-space justify="space-between">
-                  <n-text strong>自动播放音频</n-text>
+                  <n-text strong>{{ t('immersive.settingsPanel.autoPlay') }}</n-text>
                   <n-switch :default-value="true" />
                 </n-space>
               </div>
@@ -225,7 +233,7 @@ onUnmounted(() => {
               <!-- 显示提示 -->
               <div class="setting-item">
                 <n-space justify="space-between">
-                  <n-text strong>显示学习提示</n-text>
+                  <n-text strong>{{ t('immersive.settingsPanel.showHints') }}</n-text>
                   <n-switch :default-value="true" />
                 </n-space>
               </div>

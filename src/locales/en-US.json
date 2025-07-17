@@ -1,0 +1,166 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "complete": "Complete Learning"
+  },
+  "navigation": {
+    "home": "Home",
+    "getStarted": "Get Started",
+    "courses": "Courses",
+    "beginnerCourses": "Beginner Courses",
+    "intermediateCourses": "Intermediate Courses",
+    "advancedCourses": "Advanced Courses",
+    "progress": "Progress",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "about": "About"
+  },
+  "homepage": {
+    "title": "Japanese Learning Assistant",
+    "subtitle": "Make Japanese learning simple and fun",
+    "description": "Help you master Japanese easily through scientific learning methods and gamified experience",
+    "startLearning": "Start Learning",
+    "browseCourses": "Browse Courses",
+    "featuresTitle": "Why choose our Japanese learning platform?",
+    "ctaTitle": "Ready to start your Japanese learning journey?",
+    "ctaDescription": "Join us and experience the most effective Japanese learning methods",
+    "startNow": "Start Now",
+    "features": {
+      "wordLearning": {
+        "title": "Word Learning",
+        "description": "Learn Japanese words through card flipping, with bookmark and review features"
+      },
+      "grammarPractice": {
+        "title": "Grammar Practice",
+        "description": "Practice Japanese grammar through multiple choice questions, master particles and grammar structures"
+      },
+      "listeningTraining": {
+        "title": "Listening Training",
+        "description": "Improve Japanese listening comprehension through listening mode, from basic pronunciation to daily conversation"
+      },
+      "memoryEnhancement": {
+        "title": "Memory Enhancement",
+        "description": "Scientific repetitive learning mechanism to help form long-term memory"
+      },
+      "gamifiedLearning": {
+        "title": "Gamified Learning",
+        "description": "Fun learning mode makes Japanese learning no longer boring"
+      },
+      "progressTracking": {
+        "title": "Progress Tracking",
+        "description": "Detailed learning statistics and progress analysis to master learning rhythm"
+      }
+    }
+  },
+  "learning": {
+    "wordLearning": {
+      "title": "Word Learning",
+      "description": "Learn Japanese words through card flipping",
+      "totalWords": "Total Words",
+      "studiedWords": "Studied",
+      "knownWords": "Known",
+      "unknownWords": "Unknown",
+      "learningProgress": "Learning Progress",
+      "flipCard": "Flip Card",
+      "previous": "Previous",
+      "next": "Next",
+      "know": "Know",
+      "unknown": "Unknown",
+      "favorite": "Favorite",
+      "smartReview": "Smart Review",
+      "favoriteList": "Favorite List",
+      "restart": "Restart"
+    },
+    "grammarLearning": {
+      "title": "Grammar Learning",
+      "description": "Practice Japanese grammar through multiple choice questions, master particles and grammar structures",
+      "totalQuestions": "Total Questions",
+      "answeredQuestions": "Answered",
+      "accuracy": "Accuracy",
+      "submitAnswer": "Submit Answer",
+      "nextQuestion": "Next Question",
+      "showExplanation": "Show Explanation",
+      "correct": "Correct",
+      "incorrect": "Incorrect"
+    },
+    "listeningLearning": {
+      "title": "Listening Practice",
+      "description": "Improve Japanese listening comprehension through listening exercises",
+      "totalExercises": "Total Exercises",
+      "completedExercises": "Completed",
+      "playAudio": "Play Audio",
+      "showTranscript": "Show Transcript",
+      "showTranslation": "Show Translation"
+    }
+  },
+  "immersive": {
+    "settings": "Learning Settings",
+    "reset": "Reset Progress",
+    "fullscreen": "Enter Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
+    "exit": "Exit Learning",
+    "resetConfirm": "Confirm Reset",
+    "resetMessage": "Are you sure you want to reset the current learning progress? This will clear all learning records of the current session.",
+    "confirmReset": "Confirm Reset",
+    "exitConfirm": "Exit Learning",
+    "exitMessage": "Are you sure you want to exit the current learning mode? Learning progress will be automatically saved.",
+    "confirmExit": "Confirm Exit",
+    "continueStudy": "Continue Learning",
+    "progressReset": "Learning progress has been reset",
+    "settingsPanel": {
+      "fontSize": "Font Size",
+      "volume": "Volume",
+      "autoPlay": "Auto Play Audio",
+      "showHints": "Show Learning Hints",
+      "fontSizes": {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+        "extraLarge": "Extra Large"
+      }
+    }
+  },
+  "courses": {
+    "title": "Course Center",
+    "description": "Choose Japanese courses suitable for your level and start a systematic learning journey",
+    "startLearning": "Start Learning",
+    "lessons": "Lessons",
+    "students": "Students",
+    "rating": "Rating",
+    "free": "Free",
+    "premium": "Premium",
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    }
+  },
+  "stats": {
+    "total": "Total",
+    "completed": "Completed",
+    "accuracy": "Accuracy",
+    "progress": "Progress"
+  },
+  "messages": {
+    "audioPlaying": "Audio playing...",
+    "noFavoriteWords": "No favorite words yet",
+    "foundFavoriteWords": "Found {count} favorite words",
+    "cannotEnterFullscreen": "Cannot enter fullscreen mode",
+    "cannotExitFullscreen": "Cannot exit fullscreen mode"
+  },
+  "language": {
+    "switch": "Switch Language",
+    "chinese": "中文",
+    "english": "English"
+  }
+}

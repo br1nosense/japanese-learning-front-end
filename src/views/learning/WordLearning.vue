@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
+import { useI18n } from 'vue-i18n'
 import WordCard from '@/components/learning/WordCard.vue'
 import { LearningDataManager } from '@/utils/learning'
 import type { Word, WordProgress } from '@/types/learning'
 import ImmersiveLearningLayout from '@/layouts/ImmersiveLearningLayout.vue'
+
+const { t } = useI18n()
 
 const dataManager = LearningDataManager.getInstance()
 const router = useRouter()
@@ -236,6 +239,23 @@ function handleFlip() {
   showAnswer.value = !showAnswer.value
 }
 
+// 进入普通模式
+function enterNormalMode() {
+  // 保存当前学习状态
+  const currentState = {
+    currentIndex: currentIndex.value,
+    showAnswer: showAnswer.value,
+    stats: { ...stats.value },
+    settings: { ...learningSettings.value }
+  }
+
+  // 将状态保存到sessionStorage，以便在普通模式中恢复
+  sessionStorage.setItem('wordLearningState', JSON.stringify(currentState))
+
+  // 跳转到普通模式
+  router.push('/normal-learning/words')
+}
+
 // 获取需要复习的单词
 async function getReviewWords() {
   try {
@@ -347,17 +367,52 @@ function handleExit() {
   router.push('/courses')
 }
 
+// 国际化消息处理
+function showMessage(key: string, params?: any) {
+  if (params) {
+    window.$message.info(t(key, params))
+  } else {
+    window.$message.info(t(key))
+  }
+}
+
+// 恢复学习状态（从专注模式返回时）
+function restoreLearningState() {
+  const savedState = sessionStorage.getItem('wordLearningState')
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState)
+      currentIndex.value = state.currentIndex || 0
+      showAnswer.value = state.showAnswer || false
+      if (state.stats) {
+        stats.value = { ...stats.value, ...state.stats }
+      }
+      if (state.settings) {
+        learningSettings.value = { ...learningSettings.value, ...state.settings }
+      }
+      // 清除保存的状态
+      sessionStorage.removeItem('wordLearningState')
+      console.log('学习状态已恢复')
+    } catch (error) {
+      console.error('恢复学习状态失败:', error)
+    }
+  }
+}
+
 // 组件挂载时加载进度
 onMounted(async () => {
   await loadProgress()
   await getReviewWords()
   getFavoriteWords()
+
+  // 检查是否需要恢复状态（从专注模式返回）
+  restoreLearningState()
 })
 </script>
 
 <template>
   <ImmersiveLearningLayout
-    title="单词学习"
+    :title="t('learning.wordLearning.title')"
     @settings="handleSettings"
     @reset="handleReset"
     @fullscreen="handleFullscreen"
@@ -370,19 +425,19 @@ onMounted(async () => {
         <div class="stats-grid">
           <div class="stat-item">
             <div class="stat-value">{{ stats.totalWords }}</div>
-            <div class="stat-label">总单词</div>
+            <div class="stat-label">{{ t('learning.wordLearning.totalWords') }}</div>
           </div>
           <div class="stat-item">
             <div class="stat-value">{{ stats.studiedWords }}</div>
-            <div class="stat-label">已学习</div>
+            <div class="stat-label">{{ t('learning.wordLearning.studiedWords') }}</div>
           </div>
           <div class="stat-item">
             <div class="stat-value">{{ stats.knownWords }}</div>
-            <div class="stat-label">认识</div>
+            <div class="stat-label">{{ t('learning.wordLearning.knownWords') }}</div>
           </div>
           <div class="stat-item">
             <div class="stat-value">{{ stats.unknownWords }}</div>
-            <div class="stat-label">不认识</div>
+            <div class="stat-label">{{ t('learning.wordLearning.unknownWords') }}</div>
           </div>
         </div>
       </n-card>
@@ -391,7 +446,7 @@ onMounted(async () => {
       <n-card class="progress-card mb-6 rounded-16px" content-style="padding: 20px;">
         <div class="progress-header mb-3">
           <div class="flex items-center justify-between">
-            <n-text strong>学习进度</n-text>
+            <n-text strong>{{ t('learning.wordLearning.learningProgress') }}</n-text>
             <n-text class="progress-text">{{ currentIndex + 1 }} / {{ stats.totalWords }}</n-text>
           </div>
         </div>
@@ -430,8 +485,8 @@ onMounted(async () => {
             @click="prevWord"
             class="control-btn"
           >
-            <Icon icon="tabler:arrow-left" />
-            <span class="btn-text">上一个</span>
+            <Icon icon="noto:left-arrow" />
+            <span class="btn-text">{{ t('learning.wordLearning.previous') }}</span>
           </n-button>
 
           <n-button
@@ -440,8 +495,8 @@ onMounted(async () => {
             @click="handleFlip"
             class="control-btn flip-btn"
           >
-            <Icon icon="tabler:refresh" />
-            <span class="btn-text">翻转卡片</span>
+            <Icon icon="noto:cherry-blossom" />
+            <span class="btn-text">{{ t('learning.wordLearning.flipCard') }}</span>
           </n-button>
 
           <n-button
@@ -450,8 +505,8 @@ onMounted(async () => {
             @click="nextWord"
             class="control-btn"
           >
-            <span class="btn-text">下一个</span>
-            <Icon icon="tabler:arrow-right" />
+            <span class="btn-text">{{ t('learning.wordLearning.next') }}</span>
+            <Icon icon="noto:right-arrow" />
           </n-button>
         </div>
 
@@ -463,8 +518,8 @@ onMounted(async () => {
             :type="showReviewMode ? 'primary' : 'default'"
             class="aux-btn"
           >
-            <Icon icon="tabler:repeat" />
-            <span class="btn-text">智能复习</span>
+            <Icon icon="noto:clockwise-vertical-arrows" />
+            <span class="btn-text">{{ t('learning.wordLearning.smartReview') }}</span>
           </n-button>
 
           <n-button
@@ -473,8 +528,19 @@ onMounted(async () => {
             :type="showFavorites ? 'primary' : 'default'"
             class="aux-btn"
           >
-            <Icon icon="tabler:heart" />
-            <span class="btn-text">收藏列表</span>
+            <Icon icon="noto:red-heart" />
+            <span class="btn-text">{{ t('learning.wordLearning.favoriteList') }}</span>
+          </n-button>
+
+          <!-- 进入普通模式按钮 -->
+          <n-button
+            size="medium"
+            type="default"
+            class="aux-btn normal-mode-btn"
+            @click="enterNormalMode"
+          >
+            <Icon icon="noto:house" />
+            <span class="btn-text">普通模式</span>
           </n-button>
         </div>
       </div>
@@ -486,19 +552,24 @@ onMounted(async () => {
         <n-space vertical size="large">
           <!-- 字体大小设置 -->
           <div class="setting-item">
-            <n-text strong>字体大小</n-text>
+            <n-text strong>{{ t('immersive.settingsPanel.fontSize') }}</n-text>
             <n-slider
               v-model:value="learningSettings.fontSize"
               :min="12"
               :max="24"
               :step="2"
-              :marks="{ 12: '小', 16: '中', 20: '大', 24: '特大' }"
+              :marks="{
+                12: t('immersive.settingsPanel.fontSizes.small'),
+                16: t('immersive.settingsPanel.fontSizes.medium'),
+                20: t('immersive.settingsPanel.fontSizes.large'),
+                24: t('immersive.settingsPanel.fontSizes.extraLarge')
+              }"
             />
           </div>
 
           <!-- 音量设置 -->
           <div class="setting-item">
-            <n-text strong>音量</n-text>
+            <n-text strong>{{ t('immersive.settingsPanel.volume') }}</n-text>
             <n-slider
               v-model:value="learningSettings.volume"
               :min="0"
@@ -510,7 +581,7 @@ onMounted(async () => {
           <!-- 自动播放 -->
           <div class="setting-item">
             <n-space justify="space-between">
-              <n-text strong>自动播放音频</n-text>
+              <n-text strong>{{ t('immersive.settingsPanel.autoPlay') }}</n-text>
               <n-switch v-model:value="learningSettings.autoPlay" />
             </n-space>
           </div>
@@ -518,7 +589,7 @@ onMounted(async () => {
           <!-- 显示提示 -->
           <div class="setting-item">
             <n-space justify="space-between">
-              <n-text strong>显示学习提示</n-text>
+              <n-text strong>{{ t('immersive.settingsPanel.showHints') }}</n-text>
               <n-switch v-model:value="learningSettings.showHints" />
             </n-space>
           </div>
@@ -631,7 +702,13 @@ onMounted(async () => {
 
 .flip-btn {
   min-width: 140px;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-color-hover));
+  background: var(--sakura-gradient);
+  border: none;
+  color: white;
+}
+
+.flip-btn:hover {
+  background: var(--sakura-dark-gradient);
 }
 
 .secondary-controls {
@@ -652,6 +729,47 @@ onMounted(async () => {
 
 .btn-text {
   font-weight: 500;
+}
+
+/* 普通模式按钮特殊样式 */
+.normal-mode-btn {
+  background: var(--card-color);
+  border: 2px solid var(--secondary-color);
+  color: var(--secondary-color);
+  box-shadow: var(--shadow-1);
+  position: relative;
+  overflow: hidden;
+  min-width: 120px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.normal-mode-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--secondary-color);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.normal-mode-btn:hover {
+  background: var(--secondary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.normal-mode-btn:hover::before {
+  opacity: 0.1;
+}
+
+.normal-mode-btn .btn-text {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
 }
 
 /* 设置面板样式 */

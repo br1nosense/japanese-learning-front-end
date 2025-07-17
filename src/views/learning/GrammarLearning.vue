@@ -1,9 +1,13 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
+import { useI18n } from 'vue-i18n'
 import GrammarCard from '@/components/learning/GrammarCard.vue'
 import { LearningDataManager } from '@/utils/learning'
 import type { GrammarQuestion, GrammarProgress } from '@/types/learning'
 import ImmersiveLearningLayout from '@/layouts/ImmersiveLearningLayout.vue'
+
+const { t } = useI18n()
+const router = useRouter()
 
 const dataManager = LearningDataManager.getInstance()
 
@@ -201,54 +205,142 @@ function getOptionType(index: number) {
   return 'default'
 }
 
+// 沉浸式学习事件处理
+function handleSettings() {
+  console.log('打开设置面板')
+}
+
+function handleReset() {
+  // 重置当前学习进度
+  currentIndex.value = 0
+  selectedAnswer.value = null
+  showResult.value = false
+  stats.value = {
+    totalQuestions: questions.value.length,
+    answeredQuestions: 0,
+    accuracy: 0
+  }
+
+  // 清除本地存储的进度
+  questions.value.forEach(question => {
+    dataManager.removeGrammarProgress(question.id)
+  })
+
+  loadProgress()
+  window.$message.success(t('immersive.progressReset'))
+}
+
+function handleFullscreen() {
+  console.log('切换全屏模式')
+}
+
+function handleExit() {
+  // 保存当前进度
+  if (currentQuestion.value) {
+    dataManager.saveGrammarProgress(currentQuestion.value.id, {
+      questionId: currentQuestion.value.id,
+      isCorrect: selectedAnswer.value === currentQuestion.value.correctAnswer,
+      attempts: 1,
+      lastAttemptDate: new Date()
+    })
+  }
+
+  // 返回课程列表
+  router.push('/courses')
+}
+
+// 进入普通模式
+function enterNormalMode() {
+  // 保存当前学习状态
+  const currentState = {
+    currentIndex: currentIndex.value,
+    selectedAnswer: selectedAnswer.value,
+    showResult: showResult.value,
+    stats: { ...stats.value }
+  }
+
+  // 将状态保存到sessionStorage，以便在普通模式中恢复
+  sessionStorage.setItem('grammarLearningState', JSON.stringify(currentState))
+
+  // 跳转到普通模式
+  router.push('/normal-learning/grammar')
+}
+
 // 组件挂载时加载进度
+// 恢复学习状态（从专注模式返回时）
+function restoreLearningState() {
+  const savedState = sessionStorage.getItem('grammarLearningState')
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState)
+      currentIndex.value = state.currentIndex || 0
+      selectedAnswer.value = state.selectedAnswer || null
+      showResult.value = state.showResult || false
+      if (state.stats) {
+        stats.value = { ...stats.value, ...state.stats }
+      }
+      // 清除保存的状态
+      sessionStorage.removeItem('grammarLearningState')
+      console.log('语法学习状态已恢复')
+    } catch (error) {
+      console.error('恢复语法学习状态失败:', error)
+    }
+  }
+}
+
 onMounted(async () => {
   await loadProgress()
+
+  // 检查是否需要恢复状态（从专注模式返回）
+  restoreLearningState()
 })
 </script>
 
 <template>
-  <div class="grammar-learning-page">
-    <!-- 头部信息 -->
-    <n-card class="header-section mb-6 rounded-16px" content-style="padding: 24px;">
-      <div class="flex items-center justify-between">
-        <div>
-          <n-h2 class="mb-2">
-            <Icon icon="tabler:grammar" class="mr-2" />
-            语法学习
-          </n-h2>
-          <n-text depth="3">
-            通过选择题练习日语语法，掌握助词和语法结构
-          </n-text>
+  <ImmersiveLearningLayout
+    :title="t('learning.grammarLearning.title')"
+    @settings="handleSettings"
+    @reset="handleReset"
+    @fullscreen="handleFullscreen"
+    @exit="handleExit"
+  >
+    <!-- 主要学习内容 -->
+    <div class="immersive-grammar-learning">
+      <!-- 学习统计卡片 -->
+      <n-card class="stats-card mb-6 rounded-16px" content-style="padding: 20px;">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ stats.totalQuestions }}</div>
+            <div class="stat-label">{{ t('learning.grammarLearning.totalQuestions') }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ stats.answeredQuestions }}</div>
+            <div class="stat-label">{{ t('learning.grammarLearning.answeredQuestions') }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ stats.accuracy }}%</div>
+            <div class="stat-label">{{ t('learning.grammarLearning.accuracy') }}</div>
+          </div>
         </div>
+      </n-card>
 
-        <div class="stats-info">
-          <div class="stat-item">
-            <n-statistic label="总题数" :value="stats.totalQuestions" />
-          </div>
-          <div class="stat-item">
-            <n-statistic label="已答题" :value="stats.answeredQuestions" />
-          </div>
-          <div class="stat-item">
-            <n-statistic label="正确率" :value="stats.accuracy" suffix="%" />
+      <!-- 学习进度条 -->
+      <n-card class="progress-card mb-6 rounded-16px" content-style="padding: 20px;">
+        <div class="progress-header mb-3">
+          <div class="flex items-center justify-between">
+            <n-text strong>{{ t('stats.progress') }}</n-text>
+            <n-text class="progress-text">{{ currentIndex + 1 }} / {{ stats.totalQuestions }}</n-text>
           </div>
         </div>
-      </div>
-    </n-card>
-
-    <!-- 进度条 -->
-    <n-card class="progress-section mb-6 rounded-16px" content-style="padding: 16px;">
-      <div class="flex items-center gap-4">
-        <n-text class="text-sm">答题进度：</n-text>
         <n-progress
           type="line"
-          :percentage="(currentIndex / stats.totalQuestions) * 100"
+          :percentage="stats.totalQuestions > 0 ? (currentIndex / stats.totalQuestions) * 100 : 0"
           :show-indicator="false"
-          class="flex-1"
+          :height="12"
+          border-radius="6px"
+          color="var(--primary-color)"
         />
-        <n-text class="text-sm">{{ currentIndex + 1 }} / {{ stats.totalQuestions }}</n-text>
-      </div>
-    </n-card>
+      </n-card>
 
     <!-- 题目卡片 -->
     <n-card class="question-section mb-6 rounded-16px" content-style="padding: 32px;">
@@ -261,7 +353,7 @@ onMounted(async () => {
             </n-tag>
             <n-button text @click="showGrammar">
               <Icon icon="tabler:help-circle" class="mr-1" />
-              查看语法解释
+              {{ t('learning.grammarLearning.showExplanation') }}
             </n-button>
           </div>
         </div>
@@ -293,7 +385,7 @@ onMounted(async () => {
         <div v-if="showResult" class="result-section">
           <n-alert
             :type="selectedAnswer === currentQuestion.correctAnswer ? 'success' : 'error'"
-            :title="selectedAnswer === currentQuestion.correctAnswer ? '回答正确！' : '回答错误'"
+            :title="selectedAnswer === currentQuestion.correctAnswer ? t('learning.grammarLearning.correct') : t('learning.grammarLearning.incorrect')"
             class="mb-4"
           >
             {{ currentQuestion.explanation }}
@@ -311,7 +403,7 @@ onMounted(async () => {
           @click="prevQuestion"
         >
           <Icon icon="tabler:arrow-left" class="mr-1" />
-          上一题
+          {{ t('learning.wordLearning.previous') }}
         </n-button>
 
         <n-button
@@ -320,17 +412,19 @@ onMounted(async () => {
           :disabled="!showResult"
           @click="nextQuestion"
         >
-          {{ isLastQuestion ? '完成学习' : '下一题' }}
-          <Icon icon="tabler:arrow-right" class="ml-1" />
+          {{ isLastQuestion ? t('common.complete') : t('learning.grammarLearning.nextQuestion') }}
+          <Icon icon="noto:right-arrow" class="ml-1" />
         </n-button>
 
+        <!-- 进入普通模式按钮 -->
         <n-button
           size="large"
-          type="warning"
-          @click="restart"
+          type="default"
+          class="normal-mode-btn"
+          @click="enterNormalMode"
         >
-          <Icon icon="tabler:refresh" class="mr-1" />
-          重新开始
+          <Icon icon="noto:house" class="mr-1" />
+          普通模式
         </n-button>
       </div>
     </n-card>
@@ -342,24 +436,114 @@ onMounted(async () => {
       :visible="showGrammarCard"
       @close="showGrammarCard = false"
     />
-  </div>
+    </div>
+
+    <!-- 自定义设置面板 -->
+    <template #settings>
+      <div class="learning-settings">
+        <n-space vertical size="large">
+          <!-- 字体大小设置 -->
+          <div class="setting-item">
+            <n-text strong>{{ t('immersive.settingsPanel.fontSize') }}</n-text>
+            <n-slider
+              :default-value="16"
+              :min="12"
+              :max="24"
+              :step="2"
+              :marks="{
+                12: t('immersive.settingsPanel.fontSizes.small'),
+                16: t('immersive.settingsPanel.fontSizes.medium'),
+                20: t('immersive.settingsPanel.fontSizes.large'),
+                24: t('immersive.settingsPanel.fontSizes.extraLarge')
+              }"
+            />
+          </div>
+
+          <!-- 音量设置 -->
+          <div class="setting-item">
+            <n-text strong>{{ t('immersive.settingsPanel.volume') }}</n-text>
+            <n-slider
+              :default-value="70"
+              :min="0"
+              :max="100"
+              :step="10"
+            />
+          </div>
+
+          <!-- 显示提示 -->
+          <div class="setting-item">
+            <n-space justify="space-between">
+              <n-text strong>{{ t('immersive.settingsPanel.showHints') }}</n-text>
+              <n-switch :default-value="true" />
+            </n-space>
+          </div>
+        </n-space>
+      </div>
+    </template>
+  </ImmersiveLearningLayout>
 </template>
 
 <style scoped>
-.grammar-learning-page {
-  max-width: 800px;
+/* 沉浸式语法学习模式样式 */
+.immersive-grammar-learning {
+  max-width: 900px;
   margin: 0 auto;
 }
 
-.stats-info {
-  display: flex;
-  gap: 24px;
+/* 统计卡片样式 */
+.stats-card {
+  background: var(--card-color);
+  border: 1px solid var(--border-color);
 }
 
-.stat-item {
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   text-align: center;
 }
 
+.stat-item {
+  padding: 16px 12px;
+  border-radius: 12px;
+  background: var(--hover-color);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-color-3);
+  font-weight: 500;
+}
+
+/* 进度卡片样式 */
+.progress-card {
+  background: var(--card-color);
+  border: 1px solid var(--border-color);
+}
+
+.progress-header {
+  margin-bottom: 12px;
+}
+
+.progress-text {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* 题目内容样式 */
 .question-content {
   text-align: center;
 }
@@ -384,15 +568,62 @@ onMounted(async () => {
   transform: translateY(-2px);
 }
 
+/* 普通模式按钮特殊样式 */
+.normal-mode-btn {
+  background: var(--card-color);
+  border: 2px solid var(--secondary-color);
+  color: var(--secondary-color);
+  box-shadow: var(--shadow-1);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.normal-mode-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--secondary-color);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.normal-mode-btn:hover {
+  background: var(--secondary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.normal-mode-btn:hover::before {
+  opacity: 0.1;
+}
+
+/* 设置面板样式 */
+.learning-settings {
+  padding: 16px 0;
+}
+
+.setting-item {
+  padding: 12px 0;
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
-  .header-section .flex {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
-  .stats-info {
-    gap: 16px;
+  .stat-item {
+    padding: 12px 8px;
+  }
+
+  .stat-value {
+    font-size: 20px;
   }
 
   .sentence {
@@ -408,6 +639,17 @@ onMounted(async () => {
   .controls-section .n-button {
     flex: 1;
     min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .sentence {
+    font-size: 18px;
   }
 }
 </style>

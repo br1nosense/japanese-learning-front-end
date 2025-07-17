@@ -1,0 +1,166 @@
+{
+  "common": {
+    "confirm": "确认",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "close": "关闭",
+    "loading": "加载中...",
+    "success": "成功",
+    "error": "错误",
+    "warning": "警告",
+    "info": "信息",
+    "complete": "完成学习"
+  },
+  "navigation": {
+    "home": "首页",
+    "getStarted": "学习入门",
+    "courses": "课程中心",
+    "beginnerCourses": "初级课程",
+    "intermediateCourses": "中级课程",
+    "advancedCourses": "高级课程",
+    "progress": "学习进度",
+    "faq": "常见问题",
+    "contact": "联系我们",
+    "about": "关于项目"
+  },
+  "homepage": {
+    "title": "日语学习助手",
+    "subtitle": "让日语学习变得简单有趣",
+    "description": "通过科学的学习方法和游戏化体验，帮助您轻松掌握日语",
+    "startLearning": "开始学习",
+    "browseCourses": "浏览课程",
+    "featuresTitle": "为什么选择我们的日语学习平台？",
+    "ctaTitle": "准备开始您的日语学习之旅了吗？",
+    "ctaDescription": "加入我们，体验最有效的日语学习方法",
+    "startNow": "立即开始",
+    "features": {
+      "wordLearning": {
+        "title": "单词学习",
+        "description": "通过卡片翻转的方式学习日语单词，支持收藏和复习功能"
+      },
+      "grammarPractice": {
+        "title": "语法练习",
+        "description": "通过选择题练习日语语法，掌握助词和语法结构"
+      },
+      "listeningTraining": {
+        "title": "听力训练",
+        "description": "通过听力模式提高日语听力理解能力，从基础发音到日常对话"
+      },
+      "memoryEnhancement": {
+        "title": "记忆强化",
+        "description": "科学的重复学习机制，帮助形成长期记忆"
+      },
+      "gamifiedLearning": {
+        "title": "游戏化学习",
+        "description": "趣味学习模式，让日语学习不再枯燥"
+      },
+      "progressTracking": {
+        "title": "进度跟踪",
+        "description": "详细的学习统计和进度分析，掌握学习节奏"
+      }
+    }
+  },
+  "learning": {
+    "wordLearning": {
+      "title": "单词学习",
+      "description": "通过卡片翻转的方式学习日语单词",
+      "totalWords": "总单词",
+      "studiedWords": "已学习",
+      "knownWords": "认识",
+      "unknownWords": "不认识",
+      "learningProgress": "学习进度",
+      "flipCard": "翻转卡片",
+      "previous": "上一个",
+      "next": "下一个",
+      "know": "认识",
+      "unknown": "不认识",
+      "favorite": "收藏",
+      "smartReview": "智能复习",
+      "favoriteList": "收藏列表",
+      "restart": "重新开始"
+    },
+    "grammarLearning": {
+      "title": "语法学习",
+      "description": "通过选择题练习日语语法，掌握助词和语法结构",
+      "totalQuestions": "总题数",
+      "answeredQuestions": "已答题",
+      "accuracy": "正确率",
+      "submitAnswer": "提交答案",
+      "nextQuestion": "下一题",
+      "showExplanation": "查看解释",
+      "correct": "正确",
+      "incorrect": "错误"
+    },
+    "listeningLearning": {
+      "title": "听力练习",
+      "description": "通过听力练习提高日语听力理解能力",
+      "totalExercises": "总练习",
+      "completedExercises": "已完成",
+      "playAudio": "播放音频",
+      "showTranscript": "显示原文",
+      "showTranslation": "显示翻译"
+    }
+  },
+  "immersive": {
+    "settings": "学习设置",
+    "reset": "重置进度",
+    "fullscreen": "进入全屏",
+    "exitFullscreen": "退出全屏",
+    "exit": "退出学习",
+    "resetConfirm": "确认重置",
+    "resetMessage": "确定要重置当前学习进度吗？这将清除当前会话的所有学习记录。",
+    "confirmReset": "确认重置",
+    "exitConfirm": "退出学习",
+    "exitMessage": "确定要退出当前学习模式吗？学习进度将会自动保存。",
+    "confirmExit": "确认退出",
+    "continueStudy": "继续学习",
+    "progressReset": "学习进度已重置",
+    "settingsPanel": {
+      "fontSize": "字体大小",
+      "volume": "音量",
+      "autoPlay": "自动播放音频",
+      "showHints": "显示学习提示",
+      "fontSizes": {
+        "small": "小",
+        "medium": "中",
+        "large": "大",
+        "extraLarge": "特大"
+      }
+    }
+  },
+  "courses": {
+    "title": "课程中心",
+    "description": "选择适合您水平的日语课程，开始系统化的学习之旅",
+    "startLearning": "开始学习",
+    "lessons": "课时",
+    "students": "学员",
+    "rating": "评分",
+    "free": "免费",
+    "premium": "付费",
+    "difficulty": {
+      "beginner": "初级",
+      "intermediate": "中级",
+      "advanced": "高级"
+    }
+  },
+  "stats": {
+    "total": "总计",
+    "completed": "已完成",
+    "accuracy": "准确率",
+    "progress": "进度"
+  },
+  "messages": {
+    "audioPlaying": "音频播放中...",
+    "noFavoriteWords": "暂无收藏的单词",
+    "foundFavoriteWords": "找到 {count} 个收藏的单词",
+    "cannotEnterFullscreen": "无法进入全屏模式",
+    "cannotExitFullscreen": "无法退出全屏模式"
+  },
+  "language": {
+    "switch": "切换语言",
+    "chinese": "中文",
+    "english": "English"
+  }
+}

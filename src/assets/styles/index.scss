@@ -1,45 +1,75 @@
 @import './transition/fade.scss';
 
-// 樱花主题CSS变量 - 使用指定的樱花色 #c8b2ae
+// 日式主题CSS变量 - 樱花粉和传统日本色彩
 :root {
-  // 主色调 - 指定的樱花色系
-  --primary-color: #c8b2ae;
-  --primary-color-hover: #b8a29e;
-  --primary-color-pressed: #a8928e;
-  --primary-color-suppl: #d8c2be;
+  // 主色调 - 樱花粉系列
+  --primary-color: #FFB7C5;
+  --primary-color-hover: #FF9FB0;
+  --primary-color-pressed: #E6A4B1;
+  --primary-color-suppl: #FFCFD7;
+
+  // 辅助色 - 抹茶绿和温和蓝
+  --secondary-color: #88C999;
+  --secondary-color-hover: #7AB88A;
+  --accent-color: #4A90E2;
+  --accent-color-hover: #3A7BC8;
+
+  // 传统日本色彩
+  --japanese-red: #E60012;
+  --japanese-red-hover: #CC0010;
+  --matcha-green: #88C999;
+  --soft-blue: #4A90E2;
+  --warm-gold: #FFD700;
 
   // 樱花渐变
-  --sakura-gradient: linear-gradient(135deg, #c8b2ae 0%, #d4bfba 50%, #e0ccc6 100%);
-  --sakura-light-gradient: linear-gradient(135deg, #f5f1f0 0%, #f8f4f3 50%, #faf7f6 100%);
-  --sakura-dark-gradient: linear-gradient(135deg, #9d8b87 0%, #8a7873 50%, #77655f 100%);
+  --sakura-gradient: linear-gradient(135deg, #FFB7C5 0%, #FFCFD7 50%, #FFE4E8 100%);
+  --sakura-light-gradient: linear-gradient(135deg, #FFF5F6 0%, #FFFBFC 50%, #FFFFFF 100%);
+  --sakura-dark-gradient: linear-gradient(135deg, #CC929F 0%, #B8828F 50%, #A4727F 100%);
 
   // 背景色 - 深色模式
   --body-color: #1a1715;
   --card-color: #2a2521;
   --border-color: #3a332d;
-  --hover-color: rgba(200, 178, 174, 0.1);
+  --hover-color: rgba(255, 183, 197, 0.1);
 
   // 文字色
   --text-color: #f5f1f0;
-  --text-color-secondary: #c8b2ae;
+  --text-color-1: #f5f1f0;
+  --text-color-2: #e0d6d3;
+  --text-color-3: #c8b2ae;
+  --text-color-secondary: #FFB7C5;
   --text-color-disabled: #8a7873;
 
-  // 阴影 - 使用新的樱花色
-  --shadow-1: 0 1px 3px rgba(200, 178, 174, 0.12), 0 1px 2px rgba(200, 178, 174, 0.24);
-  --shadow-2: 0 3px 6px rgba(200, 178, 174, 0.16), 0 3px 6px rgba(200, 178, 174, 0.23);
-  --shadow-3: 0 10px 20px rgba(200, 178, 174, 0.19), 0 6px 6px rgba(200, 178, 174, 0.23);
+  // 成功、警告、错误色彩
+  --success-color: #88C999;
+  --warning-color: #FFD700;
+  --error-color: #FF6B6B;
+  --info-color: #4A90E2;
+
+  // 阴影 - 使用樱花粉色调
+  --shadow-1: 0 1px 3px rgba(255, 183, 197, 0.12), 0 1px 2px rgba(255, 183, 197, 0.24);
+  --shadow-2: 0 3px 6px rgba(255, 183, 197, 0.16), 0 3px 6px rgba(255, 183, 197, 0.23);
+  --shadow-3: 0 10px 20px rgba(255, 183, 197, 0.19), 0 6px 6px rgba(255, 183, 197, 0.23);
 }
 
 // 浅色模式覆盖
 .light {
-  --body-color: #faf8f7;
-  --card-color: #ffffff;
-  --border-color: #f0ebe9;
-  --hover-color: rgba(200, 178, 174, 0.05);
+  --body-color: #FFF5F6;
+  --card-color: #FFFFFF;
+  --border-color: #FFE4E8;
+  --hover-color: rgba(255, 183, 197, 0.05);
 
   --text-color: #2d2520;
-  --text-color-secondary: #77655f;
+  --text-color-1: #2d2520;
+  --text-color-2: #4a3f3a;
+  --text-color-3: #77655f;
+  --text-color-secondary: #E6A4B1;
   --text-color-disabled: #a8928e;
+
+  // 浅色模式下的阴影
+  --shadow-1: 0 1px 3px rgba(255, 183, 197, 0.08), 0 1px 2px rgba(255, 183, 197, 0.16);
+  --shadow-2: 0 3px 6px rgba(255, 183, 197, 0.12), 0 3px 6px rgba(255, 183, 197, 0.18);
+  --shadow-3: 0 10px 20px rgba(255, 183, 197, 0.15), 0 6px 6px rgba(255, 183, 197, 0.20);
 }
 
 // 全局样式优化

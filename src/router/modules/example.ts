@@ -121,7 +121,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'words',
         name: 'word-learning',
-        component: () => import('@/views/learning/WordLearning.vue'),
+        redirect: '/focused/words',
         meta: {
           title: '单词学习',
           icon: () => h(book),
@@ -130,7 +130,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'grammar',
         name: 'grammar-learning',
-        component: () => import('@/views/learning/GrammarLearning.vue'),
+        redirect: '/focused/grammar',
         meta: {
           title: '语法练习',
           icon: () => h(book),
@@ -139,7 +139,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'listening',
         name: 'listening-learning',
-        component: () => import('@/views/learning/ListeningLearning.vue'),
+        redirect: '/focused/listening',
         meta: {
           title: '听力练习',
           icon: () => h(book),

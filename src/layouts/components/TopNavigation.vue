@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue'
 import type { MenuOption } from 'naive-ui'
 import { generatorMenu } from '@/utils/router'
 import { useAuthStore } from '@/stores/auth'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -90,7 +91,10 @@ function goToProfile() {
     <div class="desktop-nav hidden md:flex items-center justify-between w-full px-6 py-4">
       <!-- Logo区域 -->
       <div class="nav-logo flex items-center gap-3 cursor-pointer" @click="router.push('/home')">
-        <Icon icon="noto:japanese-symbol-for-beginner" class="text-32px" />
+        <div class="logo-icons">
+          <Icon icon="noto:cherry-blossom" class="logo-icon primary" />
+          <Icon icon="noto:japanese-symbol-for-beginner" class="logo-icon secondary" />
+        </div>
         <span class="text-xl font-bold text-white">日语学习助手</span>
       </div>
 
@@ -115,13 +119,18 @@ function goToProfile() {
 
       <!-- 右侧工具栏 -->
       <div class="nav-tools flex items-center gap-4">
+        <!-- 语言切换 -->
+        <div class="tool-item">
+          <LanguageSwitcher />
+        </div>
+
         <!-- 深色模式切换 -->
         <div
           class="tool-item cursor-pointer p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all"
           @click="darkThemeSwitch"
         >
           <Icon
-            :icon="settingStore.darkTheme ? 'tabler:sun' : 'tabler:moon'"
+            :icon="settingStore.darkTheme ? 'noto:sun' : 'noto:crescent-moon'"
             class="text-20px"
           />
         </div>
@@ -248,6 +257,11 @@ function goToProfile() {
 
           <!-- 移动端工具栏 -->
           <div class="flex items-center gap-2 mt-4 pt-4 border-t border-white/20">
+            <!-- 语言切换 -->
+            <div class="tool-item flex-1 flex justify-center">
+              <LanguageSwitcher />
+            </div>
+
             <div
               class="tool-item cursor-pointer p-3 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all flex-1 text-center"
               @click="darkThemeSwitch"
@@ -272,9 +286,15 @@ function goToProfile() {
 
 <style scoped>
 .top-navigation {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   background: var(--sakura-gradient);
-  box-shadow: 0 4px 20px rgba(200, 178, 174, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-2);
+  transition: all 0.3s ease;
 }
 
 .nav-item::after {
@@ -301,5 +321,37 @@ function goToProfile() {
 /* 确保移动端菜单在其他内容之上 */
 .mobile-menu {
   z-index: 1000;
+}
+
+/* Logo图标样式 */
+.logo-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.logo-icon {
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.logo-icon.primary {
+  font-size: 28px;
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+.logo-icon.secondary {
+  font-size: 32px;
+  animation: gentle-float 4s ease-in-out infinite 2s;
+}
+
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+.nav-logo:hover .logo-icon {
+  transform: scale(1.1);
 }
 </style>
