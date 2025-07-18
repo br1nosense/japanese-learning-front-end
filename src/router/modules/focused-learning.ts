@@ -9,7 +9,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: '专注学习模式',
       hideInMenu: true, // 不在菜单中显示
-      requiresAuth: false,
+      requiresAuth: true, // 需要登录才能访问
     },
     children: [
       {
@@ -19,6 +19,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: '专注单词学习',
           hideInMenu: true,
+          requiresAuth: true,
         },
       },
       {
@@ -28,6 +29,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: '专注语法练习',
           hideInMenu: true,
+          requiresAuth: true,
         },
       },
       {
@@ -37,6 +39,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: '专注听力练习',
           hideInMenu: true,
+          requiresAuth: true,
         },
       },
     ],

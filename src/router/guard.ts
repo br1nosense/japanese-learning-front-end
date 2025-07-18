@@ -1,37 +1,46 @@
 import { isNavigationFailure } from 'vue-router'
 import type { Router } from 'vue-router'
 import { useRouteStore } from '@/store/modules/route'
+import { useAuthStore } from '@/stores/auth'
 import { storage } from '@/utils/storage'
 
 export function createGuard(router: Router) {
-  router.beforeEach(async (_to, _from, next) => {
+  router.beforeEach(async (to, _from, next) => {
     const Loading = window.$loading || null
     Loading && Loading.start()
 
-    // 可以执行token检查业务，比如token失效了跳转login页面
-    const token = storage.get('token')
-    if (!token) {
-      //   if (to.meta.ignoreAuth) {
-      //     next()
-      //     return
-      //   }
-      //   // redirect login page
-      //   const redirectData: {
-      //     path: string
-      //     replace: boolean
-      //     query?: Recordable<string>
-      //   } = {
-      //     path: '/login',
-      //     replace: true,
-      //   }
-      //   if (to.path) {
-      //     redirectData.query = {
-      //       ...redirectData.query,
-      //       redirect: to.path,
-      //     }
-      //   }
-      //   next(redirectData)
-      //   return
+    // 获取认证store
+    const authStore = useAuthStore()
+
+    // 公开页面，不需要认证
+    const publicPages = ['/login', '/register', '/home', '/get-started', '/about', '/courses', '/contact', '/faq']
+    const isPublicPage = publicPages.some(page => to.path.startsWith(page)) || to.path === '/'
+
+    // 检查是否需要认证
+    // 1. 如果路由明确设置了 requiresAuth: true，则需要认证
+    // 2. 如果路由明确设置了 requiresAuth: false，则不需要认证
+    // 3. 如果没有设置 requiresAuth，则根据是否为公开页面判断
+    const requiresAuth = to.meta?.requiresAuth === true ||
+                        (to.meta?.requiresAuth !== false && !isPublicPage)
+
+    // 如果需要认证但用户未登录
+    if (requiresAuth && !authStore.isAuthenticated) {
+      // 跳转到登录页面，并保存当前路径用于登录后重定向
+      const redirectData = {
+        path: '/login',
+        replace: true,
+        query: {
+          redirect: to.fullPath
+        }
+      }
+      next(redirectData)
+      return
+    }
+
+    // 如果已登录用户访问登录/注册页面，重定向到首页
+    if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
+      next('/home')
+      return
     }
 
     next()

@@ -36,23 +36,63 @@ async function handleLogin() {
   try {
     await formRef.value?.validate()
     loading.value = true
-    
+
+    console.log('开始登录，用户名:', formData.value.identifier)
+
     const result = await authStore.login({
       identifier: formData.value.identifier,
       password: formData.value.password
     })
-    
-    if (result.success) {
+
+    console.log('登录结果:', result)
+
+    // 检查result是否存在
+    if (!result) {
+      console.error('登录返回结果为空')
+      window.$message.error('登录失败：服务器无响应')
+      return
+    }
+
+    if (result.success === true) {
       window.$message.success('登录成功！')
-      
+
       // 跳转到首页或之前的页面
       const redirect = router.currentRoute.value.query.redirect as string
       router.push(redirect || '/home')
     } else {
-      window.$message.error(result.error || '登录失败')
+      const errorMessage = result.error || result.message || '登录失败'
+      console.error('登录失败:', errorMessage)
+      window.$message.error(errorMessage)
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error)
+
+    // 详细的错误处理
+    let errorMessage = '登录过程中发生错误，请稍后重试'
+
+    if (error?.response) {
+      // HTTP错误响应
+      const status = error.response.status
+      const data = error.response.data
+
+      if (status === 401) {
+        errorMessage = '用户名或密码错误'
+      } else if (status === 429) {
+        errorMessage = '请求过于频繁，请稍后再试'
+      } else if (status >= 500) {
+        errorMessage = '服务器错误，请稍后重试'
+      } else if (data?.error) {
+        errorMessage = data.error
+      }
+    } else if (error?.code === 'NETWORK_ERROR' || error?.message?.includes('Network Error')) {
+      errorMessage = '网络连接失败，请检查网络设置'
+    } else if (error?.code === 'ECONNABORTED') {
+      errorMessage = '请求超时，请检查网络连接'
+    } else if (error?.message) {
+      errorMessage = error.message
+    }
+
+    window.$message.error(errorMessage)
   } finally {
     loading.value = false
   }
@@ -83,7 +123,7 @@ function handleThirdPartyLogin(provider: string) {
           <div class="petal" v-for="i in 6" :key="i"></div>
         </div>
       </div>
-      
+
       <!-- 登录卡片 -->
       <n-card class="login-card" content-style="padding: 40px;">
         <!-- 头部 -->
@@ -96,7 +136,7 @@ function handleThirdPartyLogin(provider: string) {
             登录您的日语学习账户
           </n-text>
         </div>
-        
+
         <!-- 登录表单 -->
         <n-form
           ref="formRef"
@@ -116,7 +156,7 @@ function handleThirdPartyLogin(provider: string) {
               </template>
             </n-input>
           </n-form-item>
-          
+
           <n-form-item path="password">
             <n-input
               v-model:value="formData.password"
@@ -131,7 +171,7 @@ function handleThirdPartyLogin(provider: string) {
               </template>
             </n-input>
           </n-form-item>
-          
+
           <!-- 记住我和忘记密码 -->
           <div class="login-options mb-6">
             <n-checkbox v-model:checked="formData.rememberMe">
@@ -141,7 +181,7 @@ function handleThirdPartyLogin(provider: string) {
               忘记密码？
             </n-button>
           </div>
-          
+
           <!-- 登录按钮 -->
           <n-button
             type="primary"
@@ -154,12 +194,12 @@ function handleThirdPartyLogin(provider: string) {
             登录
           </n-button>
         </n-form>
-        
+
         <!-- 分割线 -->
         <n-divider class="my-6">
           <n-text depth="3" class="text-sm">或</n-text>
         </n-divider>
-        
+
         <!-- 第三方登录 -->
         <div class="third-party-login mb-6">
           <n-space justify="center" :size="16">
@@ -189,7 +229,7 @@ function handleThirdPartyLogin(provider: string) {
             </n-button>
           </n-space>
         </div>
-        
+
         <!-- 注册链接 -->
         <div class="register-link text-center">
           <n-text depth="3">还没有账户？</n-text>
@@ -310,11 +350,11 @@ function handleThirdPartyLogin(provider: string) {
   .login-container {
     padding: 16px;
   }
-  
+
   .login-card :deep(.n-card__content) {
     padding: 24px !important;
   }
-  
+
   .login-header {
     margin-bottom: 24px !important;
   }

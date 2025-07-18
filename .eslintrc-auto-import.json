@@ -309,6 +309,9 @@
     "useDialog": true,
     "useLoadingBar": true,
     "useMessage": true,
-    "useNotification": true
+    "useNotification": true,
+    "useApiRequest": true,
+    "usePaginatedRequest": true,
+    "useSearchRequest": true
   }
 }

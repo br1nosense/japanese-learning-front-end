@@ -73,7 +73,7 @@ export const useAuthStore = defineStore('auth', {
 
     // 检查是否为高级用户
     isPremiumUser: (state): boolean => {
-      return state.user?.subscription?.type !== 'free' && 
+      return state.user?.subscription?.type !== 'free' &&
              state.user?.subscription?.isActive === true
     },
 
@@ -106,19 +106,19 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await authAPI.register(userData)
-        
+
         if (response.token && response.user) {
           this.token = response.token
           this.user = response.user
           this.isAuthenticated = true
-          
+
           // 保存到本地存储
           apiUtils.setAuthToken(response.token)
           localStorage.setItem('userInfo', JSON.stringify(response.user))
-          
+
           return { success: true, message: response.message }
         }
-        
+
         throw new Error('注册失败')
       } catch (error: any) {
         this.error = apiUtils.handleApiError(error)
@@ -134,24 +134,44 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
+        console.log('AuthStore: 开始调用API登录')
         const response = await authAPI.login(credentials)
-        
+        console.log('AuthStore: API响应:', response)
+
+        // 检查响应是否存在
+        if (!response) {
+          throw new Error('服务器无响应')
+        }
+
         if (response.token && response.user) {
           this.token = response.token
           this.user = response.user
           this.isAuthenticated = true
-          
+
           // 保存到本地存储
           apiUtils.setAuthToken(response.token)
           localStorage.setItem('userInfo', JSON.stringify(response.user))
-          
-          return { success: true, message: response.message }
+
+          console.log('AuthStore: 登录成功')
+          return { success: true, message: response.message || '登录成功' }
         }
-        
-        throw new Error('登录失败')
+
+        // 如果没有token或user，但有错误信息
+        if (response.error) {
+          throw new Error(response.error)
+        }
+
+        throw new Error('登录失败：无效的服务器响应')
       } catch (error: any) {
+        console.error('AuthStore: 登录错误:', error)
         this.error = apiUtils.handleApiError(error)
-        return { success: false, error: this.error }
+
+        // 确保总是返回一个有效的错误结果
+        return {
+          success: false,
+          error: this.error || '登录失败',
+          message: this.error || '登录失败'
+        }
       } finally {
         this.isLoading = false
       }
@@ -166,13 +186,13 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await authAPI.getProfile()
-        
+
         if (response.user) {
           this.user = response.user
           localStorage.setItem('userInfo', JSON.stringify(response.user))
           return { success: true }
         }
-        
+
         throw new Error('获取用户信息失败')
       } catch (error: any) {
         this.error = apiUtils.handleApiError(error)
@@ -189,13 +209,13 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await authAPI.updateProfile(profileData)
-        
+
         if (response.user) {
           this.user = response.user
           localStorage.setItem('userInfo', JSON.stringify(response.user))
           return { success: true, message: response.message }
         }
-        
+
         throw new Error('更新用户信息失败')
       } catch (error: any) {
         this.error = apiUtils.handleApiError(error)
@@ -238,7 +258,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = null
         this.isAuthenticated = false
         this.error = null
-        
+
         apiUtils.clearAuthToken()
       }
     },
@@ -247,13 +267,13 @@ export const useAuthStore = defineStore('auth', {
     async initializeAuth() {
       const token = apiUtils.getAuthToken()
       const userInfo = localStorage.getItem('userInfo')
-      
+
       if (token && userInfo) {
         try {
           this.token = token
           this.user = JSON.parse(userInfo)
           this.isAuthenticated = true
-          
+
           // 验证token是否仍然有效
           await this.fetchUserProfile()
         } catch (error) {

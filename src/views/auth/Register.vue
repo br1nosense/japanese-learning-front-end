@@ -79,14 +79,14 @@ async function handleRegister() {
   try {
     await formRef.value?.validate()
     loading.value = true
-    
+
     const result = await authStore.register({
       username: formData.value.username,
       email: formData.value.email,
       password: formData.value.password,
       profile: formData.value.profile
     })
-    
+
     if (result.success) {
       window.$message.success('注册成功！欢迎加入日语学习之旅！')
       router.push('/home')
@@ -95,6 +95,12 @@ async function handleRegister() {
     }
   } catch (error) {
     console.error('Register error:', error)
+    // 处理网络错误或其他异常
+    if (error.code === 'NETWORK_ERROR') {
+      window.$message.error('网络连接失败，请检查网络设置')
+    } else {
+      window.$message.error('注册过程中发生错误，请稍后重试')
+    }
   } finally {
     loading.value = false
   }
@@ -104,10 +110,10 @@ async function handleRegister() {
 function nextStep() {
   if (currentStep.value < 2) {
     // 验证当前步骤的字段
-    const fieldsToValidate = currentStep.value === 1 
+    const fieldsToValidate = currentStep.value === 1
       ? ['username', 'email', 'password', 'confirmPassword']
       : []
-    
+
     formRef.value?.validate((errors: any) => {
       if (!errors || errors.filter((e: any) => fieldsToValidate.includes(e[0].field)).length === 0) {
         currentStep.value++
@@ -138,7 +144,7 @@ function goToLogin() {
           <div class="petal" v-for="i in 8" :key="i"></div>
         </div>
       </div>
-      
+
       <!-- 注册卡片 -->
       <n-card class="register-card" content-style="padding: 40px;">
         <!-- 头部 -->
@@ -151,13 +157,13 @@ function goToLogin() {
             开始您的日语学习之旅
           </n-text>
         </div>
-        
+
         <!-- 步骤指示器 -->
         <n-steps :current="currentStep" class="mb-8">
           <n-step title="账户信息" />
           <n-step title="个人资料" />
         </n-steps>
-        
+
         <!-- 注册表单 -->
         <n-form
           ref="formRef"
@@ -179,7 +185,7 @@ function goToLogin() {
                 </template>
               </n-input>
             </n-form-item>
-            
+
             <n-form-item path="email">
               <n-input
                 v-model:value="formData.email"
@@ -191,7 +197,7 @@ function goToLogin() {
                 </template>
               </n-input>
             </n-form-item>
-            
+
             <n-form-item path="password">
               <n-input
                 v-model:value="formData.password"
@@ -205,7 +211,7 @@ function goToLogin() {
                 </template>
               </n-input>
             </n-form-item>
-            
+
             <n-form-item path="confirmPassword">
               <n-input
                 v-model:value="formData.confirmPassword"
@@ -220,7 +226,7 @@ function goToLogin() {
               </n-input>
             </n-form-item>
           </div>
-          
+
           <!-- 第二步：个人资料 -->
           <div v-show="currentStep === 2" class="step-content">
             <n-grid :cols="2" :x-gap="16">
@@ -251,7 +257,7 @@ function goToLogin() {
                 </n-form-item>
               </n-grid-item>
             </n-grid>
-            
+
             <n-form-item path="profile.currentLevel">
               <n-select
                 v-model:value="formData.profile.currentLevel"
@@ -263,7 +269,7 @@ function goToLogin() {
                 ]"
               />
             </n-form-item>
-            
+
             <n-form-item path="profile.targetLevel">
               <n-select
                 v-model:value="formData.profile.targetLevel"
@@ -277,7 +283,7 @@ function goToLogin() {
                 ]"
               />
             </n-form-item>
-            
+
             <n-form-item path="profile.learningGoals">
               <n-checkbox-group v-model:value="formData.profile.learningGoals">
                 <n-space>
@@ -290,7 +296,7 @@ function goToLogin() {
                 </n-space>
               </n-checkbox-group>
             </n-form-item>
-            
+
             <n-form-item path="agreeTerms">
               <n-checkbox v-model:checked="formData.agreeTerms">
                 我已阅读并同意
@@ -301,7 +307,7 @@ function goToLogin() {
             </n-form-item>
           </div>
         </n-form>
-        
+
         <!-- 操作按钮 -->
         <div class="action-buttons">
           <n-space justify="space-between">
@@ -314,7 +320,7 @@ function goToLogin() {
               上一步
             </n-button>
             <div v-else></div>
-            
+
             <n-button
               v-if="currentStep < 2"
               type="primary"
@@ -335,7 +341,7 @@ function goToLogin() {
             </n-button>
           </n-space>
         </div>
-        
+
         <!-- 登录链接 -->
         <div class="login-link text-center mt-6">
           <n-text depth="3">已有账户？</n-text>
@@ -444,15 +450,15 @@ function goToLogin() {
   .register-container {
     padding: 16px;
   }
-  
+
   .register-card :deep(.n-card__content) {
     padding: 24px !important;
   }
-  
+
   .register-header {
     margin-bottom: 20px !important;
   }
-  
+
   .step-content {
     min-height: 250px;
   }

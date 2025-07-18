@@ -1,214 +1,161 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
+import { onMounted, watch, computed, ref } from 'vue'
+import { courseAPI } from '@/services/api'
+import { useApiRequest, useSearchRequest } from '@/hooks/common/useApiRequest'
+import type { Course, CourseListParams } from '@/types/course'
+import { LEVEL_OPTIONS, CATEGORY_OPTIONS, PRICE_OPTIONS, SORT_OPTIONS } from '@/types/course'
 
 const router = useRouter()
+
+// 开发环境标识
+const isDev = import.meta.env.DEV
 
 // 响应式状态管理
 const selectedLevel = ref('all')
 const selectedCategory = ref('all')
-const courses = ref([])
-const loading = ref(false)
-const error = ref('')
+const selectedPrice = ref('all')
+const selectedSort = ref('newest')
 
-// 课程数据类型定义
-interface Course {
-  id: number
-  title: string
-  description: string
-  level: 'beginner' | 'intermediate' | 'advanced'
-  category: 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'business' | 'exam'
-  lessons: number
-  duration: string
-  students: number
-  rating: number
-  image: string
-  tags: string[]
-  price: 'free' | 'premium'
-}
+// 分页状态
+const currentPage = ref(1)
+const pageSize = ref(12)
 
-// 模拟课程数据
-const mockCourseData: Course[] = [
-  {
-    id: 1,
-    title: '零基础日语入门',
-    description: '从五十音图开始，系统学习日语基础知识',
-    level: 'beginner',
-    category: 'grammar',
-    lessons: 30,
-    duration: '2-3个月',
-    students: 1250,
-    rating: 4.8,
-    image: '/vite.svg',
-    tags: ['五十音', '基础语法', '日常用语'],
-    price: 'free'
-  },
-  {
-    id: 2,
-    title: '日语语法精讲',
-    description: '深入学习日语语法结构和用法',
-    level: 'intermediate',
-    category: 'grammar',
-    lessons: 45,
-    duration: '3-4个月',
-    students: 890,
-    rating: 4.7,
-    image: '/vite.svg',
-    tags: ['语法', '句型', '敬语'],
-    price: 'premium'
-  },
-  {
-    id: 3,
-    title: '日语听力训练',
-    description: '通过各种场景对话提高听力理解能力',
-    level: 'intermediate',
-    category: 'listening',
-    lessons: 25,
-    duration: '2个月',
-    students: 670,
-    rating: 4.6,
-    image: '/vite.svg',
-    tags: ['听力', '对话', '发音'],
-    price: 'premium'
-  },
-  {
-    id: 4,
-    title: '商务日语',
-    description: '学习商务场合的日语表达和礼仪',
-    level: 'advanced',
-    category: 'business',
-    lessons: 20,
-    duration: '1-2个月',
-    students: 420,
-    rating: 4.9,
-    image: '/vite.svg',
-    tags: ['商务', '敬语', '邮件'],
-    price: 'premium'
-  },
-  {
-    id: 5,
-    title: '日语阅读理解',
-    description: '提高日语文章阅读和理解能力',
-    level: 'intermediate',
-    category: 'reading',
-    lessons: 35,
-    duration: '2-3个月',
-    students: 580,
-    rating: 4.5,
-    image: '/vite.svg',
-    tags: ['阅读', '词汇', '理解'],
-    price: 'free'
-  },
-  {
-    id: 6,
-    title: '日语词汇学习',
-    description: '系统学习日语常用词汇，掌握词汇用法',
-    level: 'beginner',
-    category: 'vocabulary',
-    lessons: 50,
-    duration: '2-3个月',
-    students: 1100,
-    rating: 4.7,
-    image: '/vite.svg',
-    tags: ['词汇', '单词', '记忆'],
-    price: 'free'
-  },
-  {
-    id: 7,
-    title: 'JLPT N5备考',
-    description: 'JLPT N5考试专项训练和模拟测试',
-    level: 'beginner',
-    category: 'exam',
-    lessons: 40,
-    duration: '3个月',
-    students: 950,
-    rating: 4.8,
-    image: '/vite.svg',
-    tags: ['JLPT', 'N5', '考试'],
-    price: 'premium'
-  },
-  {
-    id: 8,
-    title: '日语听力进阶',
-    description: '高级听力训练，提升听力理解水平',
-    level: 'advanced',
-    category: 'listening',
-    lessons: 30,
-    duration: '2个月',
-    students: 380,
-    rating: 4.6,
-    image: '/vite.svg',
-    tags: ['听力', '进阶', '理解'],
-    price: 'premium'
+// 使用API请求Hook
+const courseRequest = useApiRequest<{ courses: Course[], pagination: any }>({
+  showLoading: true,
+  showError: true,
+  retries: 2
+})
+
+// 使用搜索Hook
+const searchRequest = useSearchRequest<Course>(
+  (query: string) => courseAPI.searchCourses(query, 12),
+  500,
+  { showLoading: true, showError: true }
+)
+
+// 课程数据
+const courses = computed(() => {
+  console.log('Computing courses...')
+  console.log('Search query:', searchRequest.searchQuery.value)
+  console.log('Course request data:', courseRequest.data.value)
+
+  if (searchRequest.searchQuery.value.trim()) {
+    console.log('Using search data:', searchRequest.data.value)
+    return searchRequest.data.value || []
   }
-]
 
-// 模拟API请求函数
-async function fetchCourses(): Promise<Course[]> {
-  return new Promise((resolve, reject) => {
-    // 模拟网络延迟
-    setTimeout(() => {
-      // 模拟10%的请求失败率
-      if (Math.random() < 0.1) {
-        reject(new Error('网络请求失败，请稍后重试'))
-      } else {
-        // 模拟数据变化（随机调整学生数量）
-        const coursesWithRandomData = mockCourseData.map(course => ({
-          ...course,
-          students: course.students + Math.floor(Math.random() * 100) - 50
-        }))
-        resolve(coursesWithRandomData)
-      }
-    }, 800) // 800ms延迟模拟网络请求
-  })
-}
+  const apiData = courseRequest.data.value
+  console.log('API data structure:', apiData)
+
+  if (apiData && apiData.data && apiData.data.courses) {
+    console.log('Found courses in data.data.courses:', apiData.data.courses.length)
+    return apiData.data.courses
+  } else if (apiData && apiData.courses) {
+    console.log('Found courses in data.courses:', apiData.courses.length)
+    return apiData.courses
+  } else {
+    console.log('No courses found, returning empty array')
+    return []
+  }
+})
+
+// 分页信息
+const pagination = computed(() => {
+  if (searchRequest.searchQuery.value.trim()) {
+    return {
+      currentPage: 1,
+      totalPages: 1,
+      totalCourses: searchRequest.data.value?.length || 0,
+      hasNextPage: false,
+      hasPrevPage: false,
+      limit: 12
+    }
+  }
+
+  const apiData = courseRequest.data.value
+  if (apiData && apiData.data && apiData.data.pagination) {
+    return apiData.data.pagination
+  }
+
+  return {
+    currentPage: 1,
+    totalPages: 1,
+    totalCourses: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 12
+  }
+})
+
+// 加载状态
+const loading = computed(() => courseRequest.loading.value || searchRequest.loading.value)
+
+// 错误状态
+const error = computed(() => courseRequest.error.value || searchRequest.error.value)
+
+// 获取课程数据的参数
+const getCoursesParams = computed((): CourseListParams => ({
+  category: selectedCategory.value === 'all' ? undefined : selectedCategory.value as any,
+  level: selectedLevel.value === 'all' ? undefined : selectedLevel.value as any,
+  price: selectedPrice.value === 'all' ? undefined : selectedPrice.value as any,
+  sort: selectedSort.value as any,
+  limit: pageSize.value,
+  page: currentPage.value
+}))
 
 // 获取课程数据
 async function loadCourses() {
-  loading.value = true
-  error.value = ''
+  console.log('CourseList: 开始加载课程数据')
+  console.log('CourseList: 请求参数:', getCoursesParams.value)
 
   try {
-    const courseData = await fetchCourses()
-    courses.value = courseData
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : '获取课程数据失败'
-    console.error('获取课程数据失败:', err)
-  } finally {
-    loading.value = false
+    await courseRequest.execute(() => courseAPI.getCourses(getCoursesParams.value))
+    console.log('CourseList: 课程数据加载完成')
+    console.log('CourseList: 课程数量:', courses.value.length)
+    console.log('CourseList: 课程数据:', courses.value)
+  } catch (error) {
+    console.error('CourseList: 课程数据加载失败:', error)
   }
 }
 
 // 重新加载课程数据
 async function reloadCourses() {
+  // 清除搜索
+  searchRequest.clearSearch()
+  // 重新加载课程
   await loadCourses()
 }
 
-const levelOptions = [
-  { label: '全部级别', value: 'all' },
-  { label: '初级', value: 'beginner' },
-  { label: '中级', value: 'intermediate' },
-  { label: '高级', value: 'advanced' }
-]
+// 切换页面
+async function changePage(page: number) {
+  currentPage.value = page
+  await loadCourses()
+}
 
-const categoryOptions = [
-  { label: '全部分类', value: 'all' },
-  { label: '词汇', value: 'vocabulary' },
-  { label: '语法', value: 'grammar' },
-  { label: '听力', value: 'listening' },
-  { label: '阅读', value: 'reading' },
-  { label: '商务', value: 'business' },
-  { label: '考试', value: 'exam' }
-]
+// 处理搜索
+function handleSearch() {
+  if (searchRequest.searchQuery.value.trim()) {
+    searchRequest.debouncedSearch()
+  } else {
+    searchRequest.clearSearch()
+    loadCourses()
+  }
+}
 
-const filteredCourses = computed(() => {
-  return courses.value.filter(course => {
-    const levelMatch = selectedLevel.value === 'all' || course.level === selectedLevel.value
-    const categoryMatch = selectedCategory.value === 'all' || course.category === selectedCategory.value
-    return levelMatch && categoryMatch
-  })
-})
+// 监听筛选条件变化
+watch([selectedLevel, selectedCategory, selectedPrice, selectedSort], () => {
+  console.log('筛选条件变化，重新加载课程')
+  // 清除搜索状态
+  searchRequest.clearSearch()
+  // 重新加载课程
+  loadCourses()
+}, { deep: true, flush: 'post' })
+
+// 监听搜索输入
+watch(searchRequest.searchQuery, handleSearch)
 
 function getLevelColor(level: string) {
   const colors = {
@@ -228,20 +175,20 @@ function getLevelText(level: string) {
   return texts[level] || level
 }
 
-function startCourse(courseId: number) {
+function startCourse(courseId: string) {
   // 根据课程类别跳转到不同的学习页面
   const course = courses.value.find(c => c.id === courseId)
   if (!course) return
 
   // 构建完整的课程信息参数
   const courseParams = {
-    courseId: courseId.toString(),
+    courseId: courseId,
     level: course.level,
     title: course.title,
     description: course.description,
     category: course.category,
-    lessons: course.lessons.toString(),
-    duration: course.duration,
+    lessons: course.totalLessons.toString(),
+    duration: course.totalDuration.toString(),
     tags: course.tags.join(','), // 将标签数组转换为逗号分隔的字符串
     price: course.price
   }
@@ -345,14 +292,30 @@ onMounted(() => {
       </div>
     </n-card>
 
-    <!-- Filters -->
+    <!-- Search and Filters -->
     <n-card class="filter-section mb-6 rounded-16px" content-style="padding: 24px;">
+      <!-- Search Bar -->
+      <div class="search-section mb-4">
+        <n-input
+          v-model:value="searchRequest.searchQuery.value"
+          placeholder="搜索课程名称、标签或讲师..."
+          clearable
+          size="large"
+          :disabled="loading"
+        >
+          <template #prefix>
+            <Icon icon="tabler:search" />
+          </template>
+        </n-input>
+      </div>
+
+      <!-- Filters -->
       <div class="flex gap-4 items-center flex-wrap">
         <div class="filter-item">
           <n-text class="mr-2">级别筛选：</n-text>
           <n-select
             v-model:value="selectedLevel"
-            :options="levelOptions"
+            :options="LEVEL_OPTIONS"
             class="w-120px"
             size="small"
             :disabled="loading"
@@ -362,7 +325,27 @@ onMounted(() => {
           <n-text class="mr-2">分类筛选：</n-text>
           <n-select
             v-model:value="selectedCategory"
-            :options="categoryOptions"
+            :options="CATEGORY_OPTIONS"
+            class="w-120px"
+            size="small"
+            :disabled="loading"
+          />
+        </div>
+        <div class="filter-item">
+          <n-text class="mr-2">价格筛选：</n-text>
+          <n-select
+            v-model:value="selectedPrice"
+            :options="PRICE_OPTIONS"
+            class="w-120px"
+            size="small"
+            :disabled="loading"
+          />
+        </div>
+        <div class="filter-item">
+          <n-text class="mr-2">排序方式：</n-text>
+          <n-select
+            v-model:value="selectedSort"
+            :options="SORT_OPTIONS"
             class="w-120px"
             size="small"
             :disabled="loading"
@@ -381,7 +364,7 @@ onMounted(() => {
             刷新
           </n-button>
           <n-text depth="3">
-            共找到 {{ filteredCourses.length }} 门课程
+            共找到 {{ pagination.totalCourses }} 门课程 (当前显示: {{ courses.length }})
           </n-text>
         </div>
       </div>
@@ -391,12 +374,34 @@ onMounted(() => {
     <n-card v-if="error && !loading" class="error-section mb-6 rounded-16px">
       <n-result status="error" title="加载失败" :description="error">
         <template #footer>
-          <n-button type="primary" @click="reloadCourses">
-            <template #icon>
-              <Icon icon="tabler:refresh" />
-            </template>
-            重新加载
-          </n-button>
+          <n-space>
+            <n-button type="primary" @click="reloadCourses">
+              <template #icon>
+                <Icon icon="tabler:refresh" />
+              </template>
+              重新加载
+            </n-button>
+            <n-button
+              v-if="searchRequest.searchQuery.value.trim()"
+              @click="searchRequest.retry()"
+              secondary
+            >
+              <template #icon>
+                <Icon icon="tabler:search" />
+              </template>
+              重试搜索
+            </n-button>
+            <n-button
+              v-else
+              @click="courseRequest.retry()"
+              secondary
+            >
+              <template #icon>
+                <Icon icon="tabler:reload" />
+              </template>
+              重试请求
+            </n-button>
+          </n-space>
         </template>
       </n-result>
     </n-card>
@@ -414,19 +419,48 @@ onMounted(() => {
       </n-card>
     </div>
 
+    <!-- Debug Info (开发环境) -->
+    <n-card v-if="isDev" class="debug-section mb-6 rounded-16px" title="调试信息">
+      <n-space vertical>
+        <n-text>加载状态: {{ loading }}</n-text>
+        <n-text>错误状态: {{ error || '无' }}</n-text>
+        <n-text>课程数量: {{ courses.length }}</n-text>
+        <n-text>显示课程网格: {{ !loading && !error }}</n-text>
+        <n-text>API数据存在: {{ !!courseRequest.data.value }}</n-text>
+        <n-text>课程数据路径: {{ courseRequest.data.value?.data?.courses ? '正确' : '错误' }}</n-text>
+      </n-space>
+    </n-card>
+
     <!-- Course Grid -->
     <div v-if="!loading && !error">
+      <!-- 简单的课程列表测试 -->
+      <n-card v-if="isDev" class="mb-4" title="简单渲染测试">
+        <n-space vertical>
+          <n-text>准备渲染 {{ courses.length }} 门课程</n-text>
+          <div v-for="(course, index) in courses.slice(0, 3)" :key="course.id || index">
+            <n-text>{{ index + 1 }}. {{ course.title }} (ID: {{ course.id }})</n-text>
+          </div>
+        </n-space>
+      </n-card>
+
       <n-grid :cols="24" :x-gap="24" :y-gap="24" responsive="screen" item-responsive>
-        <n-grid-item v-for="course in filteredCourses" :key="course.id" span="24 l:8 m:12 s:24">
+        <n-grid-item v-for="course in courses" :key="course.id || course._id" span="24 l:8 m:12 s:24">
           <n-card hoverable class="course-card h-full" content-style="padding: 0;">
             <div class="course-image">
-              <img :src="course.image" :alt="course.title" class="w-full h-160px object-cover" />
+              <img
+                :src="course.image || course.thumbnail || '/vite.svg'"
+                :alt="course.title"
+                class="w-full h-160px object-cover"
+              />
               <div class="course-overlay">
                 <n-tag :type="getLevelColor(course.level)" size="small">
                   {{ getLevelText(course.level) }}
                 </n-tag>
                 <n-tag v-if="course.price === 'free'" type="success" size="small" class="ml-2">
                   免费
+                </n-tag>
+                <n-tag v-if="course.jlptLevel" type="warning" size="small" class="ml-2">
+                  {{ course.jlptLevel }}
                 </n-tag>
               </div>
             </div>
@@ -435,7 +469,14 @@ onMounted(() => {
               <n-h3 class="mb-2 line-clamp-1">{{ course.title }}</n-h3>
               <n-text depth="3" class="mb-3 block line-clamp-2">{{ course.description }}</n-text>
 
-              <div class="course-tags mb-3">
+              <!-- 讲师信息 -->
+              <div v-if="course.instructor?.name" class="instructor-info mb-3">
+                <n-text depth="2" class="text-sm">
+                  讲师：{{ course.instructor.name }}
+                </n-text>
+              </div>
+
+              <div v-if="course.tags && course.tags.length > 0" class="course-tags mb-3">
                 <n-tag
                   v-for="tag in course.tags"
                   :key="tag"
@@ -450,22 +491,22 @@ onMounted(() => {
 
               <div class="course-stats mb-4">
                 <div class="flex items-center gap-4 text-sm text-gray-600">
-                  <div class="flex items-center gap-1">
+                  <div v-if="course.lessons" class="flex items-center gap-1">
                     <Icon icon="tabler:book" />
                     <span>{{ course.lessons }}课时</span>
                   </div>
-                  <div class="flex items-center gap-1">
+                  <div v-if="course.duration" class="flex items-center gap-1">
                     <Icon icon="tabler:clock" />
                     <span>{{ course.duration }}</span>
                   </div>
-                  <div class="flex items-center gap-1">
+                  <div v-if="course.students" class="flex items-center gap-1">
                     <Icon icon="tabler:users" />
                     <span>{{ course.students }}</span>
                   </div>
                 </div>
-                <div class="flex items-center gap-1 mt-2">
+                <div v-if="course.rating" class="flex items-center gap-1 mt-2">
                   <Icon icon="tabler:star-filled" class="text-yellow-500" />
-                  <span class="text-sm">{{ course.rating }}</span>
+                  <span class="text-sm">{{ course.rating }} ({{ course.students || 0 }})</span>
                 </div>
               </div>
 
@@ -480,19 +521,46 @@ onMounted(() => {
         </n-grid-item>
       </n-grid>
 
+      <!-- Pagination -->
+      <div v-if="pagination.totalPages > 1" class="pagination-section mt-8 text-center">
+        <n-pagination
+          v-model:page="currentPage"
+          :page-count="pagination.totalPages"
+          :page-size="pageSize"
+          :item-count="pagination.totalCourses"
+          show-size-picker
+          show-quick-jumper
+          :page-sizes="[6, 12, 24, 48]"
+          @update:page="changePage"
+          @update:page-size="(size) => { pageSize = size; currentPage = 1; reloadCourses() }"
+        />
+      </div>
+
       <!-- Empty State -->
-      <div v-if="filteredCourses.length === 0 && !loading && !error" class="empty-state text-center py-20">
+      <div v-if="courses.length === 0 && !loading && !error" class="empty-state text-center py-20">
         <n-card class="rounded-16px" content-style="padding: 60px;">
           <Icon icon="tabler:book-off" class="text-80px text-gray-400 mb-4" />
           <n-text depth="3" class="text-18px mb-4 block">
-            没有找到符合条件的课程
+            {{ searchRequest.searchQuery.value.trim() ? '没有找到匹配的课程' : '没有找到符合条件的课程' }}
           </n-text>
-          <n-button @click="reloadCourses" secondary>
-            <template #icon>
-              <Icon icon="tabler:refresh" />
-            </template>
-            重新加载
-          </n-button>
+          <n-space justify="center">
+            <n-button @click="reloadCourses" secondary>
+              <template #icon>
+                <Icon icon="tabler:refresh" />
+              </template>
+              重新加载
+            </n-button>
+            <n-button
+              v-if="searchRequest.searchQuery.value.trim()"
+              @click="searchRequest.clearSearch()"
+              tertiary
+            >
+              <template #icon>
+                <Icon icon="tabler:x" />
+              </template>
+              清除搜索
+            </n-button>
+          </n-space>
         </n-card>
       </div>
     </div>
@@ -537,6 +605,15 @@ onMounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.search-section {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.pagination-section {
+  padding: 20px 0;
 }
 
 /* 响应式布局优化 */

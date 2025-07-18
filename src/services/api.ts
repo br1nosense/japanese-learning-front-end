@@ -32,12 +32,49 @@ apiClient.interceptors.response.use(
     return response
   },
   (error) => {
-    if (error.response?.status === 401) {
-      // Token过期或无效，清除本地存储并跳转到登录页
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('userInfo')
-      window.location.href = '/login'
+    // 网络错误
+    if (!error.response) {
+      error.code = 'NETWORK_ERROR'
+      error.message = '网络连接失败，请检查网络设置'
+      return Promise.reject(error)
     }
+
+    const { status, data } = error.response
+
+    switch (status) {
+      case 401:
+        // Token过期或无效，清除本地存储并跳转到登录页
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('userInfo')
+        // 使用路由跳转而不是直接修改location
+        if (window.$router) {
+          window.$router.push('/login')
+        } else {
+          window.location.href = '/login'
+        }
+        error.message = '登录已过期，请重新登录'
+        break
+      case 403:
+        error.message = '权限不足，无法访问该资源'
+        break
+      case 404:
+        error.message = '请求的资源不存在'
+        break
+      case 429:
+        error.message = '请求过于频繁，请稍后再试'
+        break
+      case 500:
+        error.message = '服务器内部错误，请稍后重试'
+        break
+      case 502:
+      case 503:
+      case 504:
+        error.message = '服务暂时不可用，请稍后重试'
+        break
+      default:
+        error.message = data?.error || data?.message || '请求失败，请稍后重试'
+    }
+
     return Promise.reject(error)
   }
 )
@@ -67,8 +104,21 @@ export const authAPI = {
     identifier: string
     password: string
   }): Promise<ApiResponse> => {
-    const response = await apiClient.post('/auth/login', credentials)
-    return response.data
+    try {
+      console.log('API: 发送登录请求到:', `${API_BASE_URL}/auth/login`)
+      console.log('API: 请求数据:', { identifier: credentials.identifier, password: '***' })
+
+      const response = await apiClient.post('/auth/login', credentials)
+      console.log('API: 登录响应状态:', response.status)
+      console.log('API: 登录响应数据:', response.data)
+
+      return response.data
+    } catch (error: any) {
+      console.error('API: 登录请求失败:', error)
+
+      // 重新抛出错误，让上层处理
+      throw error
+    }
   },
 
   // 获取用户信息
@@ -270,16 +320,56 @@ export const apiUtils = {
 
   // 处理API错误
   handleApiError: (error: any): string => {
-    if (error.response?.data?.error) {
-      return error.response.data.error
-    }
-    if (error.response?.data?.message) {
-      return error.response.data.message
-    }
+    // 如果错误已经被响应拦截器处理过，直接返回message
     if (error.message) {
       return error.message
     }
-    return '网络错误，请稍后重试'
+
+    // 处理响应错误
+    if (error.response?.data) {
+      const { data } = error.response
+      return data.error || data.message || '请求失败，请稍后重试'
+    }
+
+    // 处理网络错误
+    if (error.code === 'NETWORK_ERROR' || !error.response) {
+      return '网络连接失败，请检查网络设置'
+    }
+
+    // 处理超时错误
+    if (error.code === 'ECONNABORTED') {
+      return '请求超时，请稍后重试'
+    }
+
+    return '未知错误，请稍后重试'
+  },
+
+  // 重试请求
+  retryRequest: async (requestFn: () => Promise<any>, maxRetries = 3, delay = 1000): Promise<any> => {
+    let lastError: any
+
+    for (let i = 0; i <= maxRetries; i++) {
+      try {
+        return await requestFn()
+      } catch (error: any) {
+        lastError = error
+
+        // 如果是客户端错误（4xx），不重试
+        if (error.response?.status >= 400 && error.response?.status < 500) {
+          throw error
+        }
+
+        // 如果是最后一次尝试，抛出错误
+        if (i === maxRetries) {
+          throw error
+        }
+
+        // 等待一段时间后重试
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)))
+      }
+    }
+
+    throw lastError
   },
 }
 
